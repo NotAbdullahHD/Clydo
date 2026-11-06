@@ -79,7 +79,10 @@ const holder = claim();
 
 if (holder) {
   log(`another instance is already online (pid ${holder}) — exiting.`);
-  process.exit(1);
+  // exit on the next tick: killing the process mid-write trips a libuv
+  // assertion on windows, which prints after the reason we just logged.
+  process.exitCode = 1;
+  setTimeout(() => process.exit(1), 250);
 }
 
 process.on('exit', release);
