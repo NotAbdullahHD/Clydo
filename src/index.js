@@ -9,11 +9,13 @@ import {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  Partials,
   REST,
   Routes,
 } from 'discord.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
+import { watch as watchSobReactions } from './lib/reactions.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { panel } from './lib/theme.js';
 
@@ -75,14 +77,23 @@ const messageIntent = resolve(overrides.messageContent, portal.messageContent);
  * is only requested when the portal has it on, because asking for an unapproved
  * one fails the login outright.
  */
-const intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
+const intents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMessageReactions,
+];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
 if (messageIntent) intents.push(GatewayIntentBits.MessageContent);
 
-const client = new Client({ intents });
+const client = new Client({
+  intents,
+  /** reactions on old messages arrive partial, so they need fetching. */
+  partials: [Partials.Message, Partials.Reaction, Partials.Channel],
+});
 client.commands = new Collection();
 watchSnipes(client);
 routePrefix(client);
+watchSobReactions(client);
 
 async function loadCommands() {
   const files = (await readdir(commandDir)).filter((file) => file.endsWith('.js')).sort();

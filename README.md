@@ -96,6 +96,7 @@ src/
   lib/theme.js      palette, marks, panel / datapoint / tape helpers
   lib/errors.js     single failure path, ref codes, stay-online handlers
   lib/prefix.js     `,` message routing
+  lib/reactions.js  sob emoji → author count
   lib/snipes.js     per-channel deleted message store + watcher
   lib/sobs.js       json-backed sob counts, scoped per server
   commands/
@@ -129,6 +130,10 @@ the router finds it by name and never touches slash-only commands.
 
 a command can be prefix-only: `sobs` exports `name` and `prefix` with no `data`,
 so nothing is registered for it as a slash command and `/help` lists it under the prefix.
+
+sobs are earned, not given: every 😭 reaction a message collects is one sob for its
+author. each reactor counts once, bots included, so five reactors is five sobs.
+`,sobs add` is for correcting the number by hand; the count itself comes from reactions.
 
 prefix routing needs the privileged **message content intent** — without it
 discord sends empty message content, so `,sobs` cannot see anything. that is
