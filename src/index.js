@@ -17,6 +17,7 @@ import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
 import { connect } from './lib/db.js';
+import { claim, release } from './lib/single.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { migrateFromJson } from './lib/sobs.js';
 import { panel } from './lib/theme.js';
@@ -73,6 +74,15 @@ const resolve = (override, detected) => {
 const portal = await portalIntents();
 const presenceIntent = resolve(overrides.presence, portal.presence);
 const messageIntent = resolve(overrides.messageContent, portal.messageContent);
+
+const holder = await claim();
+
+if (holder) {
+  log(`another instance is already online (pid ${holder}) — exiting.`);
+  process.exit(1);
+}
+
+process.on('exit', release);
 
 const mongo = await connect(process.env.MONGO_URI?.trim(), 'clydo', log);
 
