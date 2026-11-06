@@ -79,10 +79,11 @@ const holder = claim();
 
 if (holder) {
   log(`another instance is already online (pid ${holder}) — exiting.`);
-  // exit on the next tick: killing the process mid-write trips a libuv
-  // assertion on windows, which prints after the reason we just logged.
-  process.exitCode = 1;
-  setTimeout(() => process.exit(1), 250);
+  // stop here rather than carrying on as a second session; waiting one tick
+  // lets the log flush, because exiting mid-write trips a libuv assertion on
+  // windows that prints right after the reason we just logged.
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  process.exit(1);
 }
 
 process.on('exit', release);
