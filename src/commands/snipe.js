@@ -1,8 +1,10 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { GatewayIntentBits, SlashCommandBuilder } from 'discord.js';
 import { peek } from '../lib/snipes.js';
 import { panel, section, sections, since } from '../lib/theme.js';
 
-const contentIntent = process.env.MESSAGE_INTENT?.trim() === 'true';
+/** resolved from the portal at boot, so ask the client rather than the env. */
+const contentOn = (client) =>
+  client?.options?.intents?.has?.(GatewayIntentBits.MessageContent) ?? false;
 
 export const data = new SlashCommandBuilder()
   .setName('snipe')
@@ -32,7 +34,9 @@ export async function execute(interaction) {
   ];
 
   if (record.attachment) rows.push(['attachment', record.attachment]);
-  if (!contentIntent) rows.push(['note', 'message content intent is off — text may be missing']);
+  if (!contentOn(interaction.client)) {
+    rows.push(['note', 'message content intent is off — text may be missing']);
+  }
 
   await interaction.reply({
     embeds: [

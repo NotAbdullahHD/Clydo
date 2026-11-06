@@ -66,6 +66,7 @@ DISCORD_TOKEN=your bot token
 GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
 MESSAGE_INTENT=false
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/clydo?appName=clydo
 PREFIX=,
 OWNER_ID=
 ```
@@ -138,6 +139,14 @@ author. each reactor counts once, bots included, so five reactors is five sobs.
 prefix routing needs the privileged **message content intent** — without it
 discord sends empty message content, so `,sobs` cannot see anything. that is
 why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
+
+## storage
+
+sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
+database name comes from the uri path (`/clydo`), two collections (`counts`,
+`guilds`) with a unique index on each key. with no uri, everything falls back to
+`data/sobs.json`, so a fresh checkout still runs. an existing json file is moved
+into an empty database once and then renamed `.migrated`.
 
 ## snipes and sobs
 

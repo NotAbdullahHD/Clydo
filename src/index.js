@@ -16,7 +16,9 @@ import {
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
+import { connect } from './lib/db.js';
 import { watch as watchSnipes } from './lib/snipes.js';
+import { migrateFromJson } from './lib/sobs.js';
 import { panel } from './lib/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -71,6 +73,13 @@ const resolve = (override, detected) => {
 const portal = await portalIntents();
 const presenceIntent = resolve(overrides.presence, portal.presence);
 const messageIntent = resolve(overrides.messageContent, portal.messageContent);
+
+const mongo = await connect(process.env.MONGO_URI?.trim(), 'clydo', log);
+
+if (mongo) {
+  const migrated = await migrateFromJson();
+  if (migrated) log(`migrated ${migrated} sob count(s) into mongo.`);
+}
 
 /**
  * guilds + guild messages is all a slash-command bot needs. a privileged intent
@@ -137,8 +146,24 @@ async function registerCommands() {
   log(`registered ${body.length} command(s) globally.`);
 }
 
+/** watching — live member total across every server the bot sits in. */
+function refreshPresence(target) {
+  const users = target.guilds.cache.reduce((sum, guild) => sum + (guild.memberCount ?? 0), 0);
+  const servers = target.guilds.cache.size;
+
+  const name = `${users} users! in ${servers} servers`;
+
+  target.user.setPresence({
+    status: 'online',
+    activities: [{ name, type: ActivityType.Watching }],
+  });
+
+  return name;
+}
+
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
+  log(mongo ? 'counts: mongo.' : 'counts: data/sobs.json.');
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
   log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
   log(`prefix: ${prefix}`);
@@ -147,10 +172,8 @@ client.once(Events.ClientReady, async (ready) => {
     log(`prefix commands like ${prefix}sobs are inert until MESSAGE_INTENT=true.`);
   }
 
-  ready.user.setPresence({
-    status: 'online',
-    activities: [{ name: '/help', type: ActivityType.Watching }],
-  });
+  log(`status: watching ${refreshPresence(ready)}.`);
+  setInterval(() => refreshPresence(client), 10 * 60 * 1000);
 
   try {
     await registerCommands();
@@ -180,6 +203,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await failInteraction(interaction, error, `/${interaction.commandName}`);
   }
 });
+
+client.on(Events.GuildCreate, () => refreshPresence(client));
+client.on(Events.GuildDelete, () => refreshPresence(client));
 
 client.on(Events.Error, (error) => report('gateway', error));
 client.on(Events.Warn, (message) => log('warn —', message));
