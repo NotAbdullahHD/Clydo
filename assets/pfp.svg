@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="clydo">
+  <rect width="1024" height="1024" fill="#000000"/>
+  <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M288 512 A 224 224 0 0 1 736 512"/>
+    <rect x="334" y="330" width="356" height="430" rx="150"/>
+  </g>
+  <g fill="#ffffff">
+    <rect x="248" y="470" width="92" height="178" rx="46"/>
+    <rect x="684" y="470" width="92" height="178" rx="46"/>
+    <rect x="398" y="470" width="228" height="88" rx="44"/>
+  </g>
+  <path d="M302 660 Q 352 744 448 726" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round"/>
+</svg>
