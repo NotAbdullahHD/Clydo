@@ -38,6 +38,7 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `/userinfo [user]` | account age and presence |
 | `/purge <amount>` | clear 1–100 recent messages, manage-messages only |
 | `/snipe` | the last deleted message in this channel |
+| `/sobs [user] [top]` | sob once, read someone's count, or the server leaderboard |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -84,6 +85,7 @@ src/
   lib/theme.js      palette, marks, panel / datapoint / tape helpers
   lib/errors.js     single failure path, ref codes, stay-online handlers
   lib/snipes.js     per-channel deleted message store + watcher
+  lib/sobs.js       json-backed sob counts, scoped per server
   commands/
     help.js         reads the live command registry
     ping.js         roundtrip + gateway latency
@@ -92,12 +94,17 @@ src/
     userinfo.js     account + presence
     purge.js        message cleanup
     snipe.js        last deleted message
+    sobs.js         sob counter + leaderboard
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
 ```
 
-## errors
+## snipes and sobs
+
+both are memory-shaped features with one exception: sob counts are written to
+`data/sobs.json` so a restart doesn't wipe the leaderboard. the file is gitignored
+and created on the first sob. snipes stay in memory and clear on restart.
 
 every failure goes through `failInteraction()`: one console entry with a ref code,
 one ephemeral panel carrying the same code, and the right reply method whichever
