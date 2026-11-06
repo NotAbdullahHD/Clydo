@@ -10,7 +10,8 @@ import { failMessage } from './errors.js';
 
 export const prefix = process.env.PREFIX?.trim() || ',';
 
-const namesOf = (command) => [command.data.name, ...(command.names ?? [])];
+/** prefix-only commands may not have slash data at all. */
+const namesOf = (command) => [command.name, command.data?.name, ...(command.names ?? [])].filter(Boolean);
 
 export function route(client) {
   client.on(Events.MessageCreate, async (message) => {

@@ -53,22 +53,29 @@ async function loadCommands() {
     try {
       const module = await import(pathToFileURL(path.join(commandDir, file)).href);
 
-      if (!module.data || typeof module.execute !== 'function') {
-        log(`skipped ${file} — needs "data" and "execute" exports.`);
+      const name = module.data?.name ?? module.name;
+      const slashable = Boolean(module.data) && typeof module.execute === 'function';
+      const prefixable = typeof module.prefix === 'function';
+
+      if (!name || (!slashable && !prefixable)) {
+        log(`skipped ${file} — needs "data"+"execute", "prefix", or both.`);
         continue;
       }
 
-      client.commands.set(module.data.name, module);
+      client.commands.set(name, module);
     } catch (error) {
       report(`loading ${file}`, error);
     }
   }
 
-  log(`loaded ${client.commands.size} command(s).`);
+  const slash = [...client.commands.values()].filter((command) => command.data);
+  log(`loaded ${client.commands.size} command(s) — ${slash.length} slash, ${client.commands.size - slash.length} prefix only.`);
 }
 
 async function registerCommands() {
-  const body = [...client.commands.values()].map((command) => command.data.toJSON());
+  const body = [...client.commands.values()]
+    .filter((command) => command.data)
+    .map((command) => command.data.toJSON());
   const rest = new REST().setToken(token);
 
   if (guildId) {
@@ -108,7 +115,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   const command = client.commands.get(interaction.commandName);
 
-  if (!command) {
+  if (!command || typeof command.execute !== 'function') {
     await interaction
       .reply({
         embeds: [panel({ title: 'unknown', description: '`›` that command is gone. run /help.' })],

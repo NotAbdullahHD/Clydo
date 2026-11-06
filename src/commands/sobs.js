@@ -1,7 +1,10 @@
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { PermissionFlagsBits } from 'discord.js';
 import { prefix as prefixChar } from '../lib/prefix.js';
 import { addSobs, board, count, setBanned, setEnabled, settings } from '../lib/sobs.js';
-import { panel, section, sections } from '../lib/theme.js';
+import { panel } from '../lib/theme.js';
+
+/** prefix only. there is no slash command for sobs. */
+export const name = 'sobs';
 
 const shown = 10;
 
@@ -20,83 +23,6 @@ const usage = {
   ban: `usage — \`${prefixChar}sobs ban @user\``,
   unban: `usage — \`${prefixChar}sobs unban @user\``,
 };
-
-export const names = ['sobs'];
-
-export const data = new SlashCommandBuilder()
-  .setName('sobs')
-  .setDescription('read the sob count or the leaderboard')
-  .addUserOption((option) =>
-    option.setName('user').setDescription('read someone else').setRequired(false),
-  )
-  .addBooleanOption((option) =>
-    option.setName('top').setDescription('show this server leaderboard').setRequired(false),
-  )
-  .setDMPermission(false);
-
-/* ── slash ───────────────────────────────────────────────── */
-
-export async function execute(interaction) {
-  const { guild } = interaction;
-  const state = await settings(guild.id);
-
-  if (!state.enabled) {
-    await interaction.reply(say('sobs are off in this server.'));
-    return;
-  }
-
-  if (interaction.options.getBoolean('top')) {
-    const ranked = (await board(guild.id)).slice(0, shown);
-
-    const rows = ranked.length
-      ? ranked.map((entry, index) => [
-        `${index + 1}`,
-        `${guild.members.cache.get(entry.userId)?.user.username ?? `<@${entry.userId}>`}  —  ${entry.count}`,
-      ])
-      : [['sobs', 'nothing counted here yet']];
-
-    await interaction.reply({
-      embeds: [
-        panel({
-          title: 'sobs',
-          description: sections(section({ heading: 'leaderboard', rows })),
-          footer: 'raw sorrow. no noise.',
-        }),
-      ],
-    });
-    return;
-  }
-
-  const target = interaction.options.getUser('user') ?? interaction.user;
-
-  if (state.banned.includes(target.id)) {
-    await interaction.reply(say(`**${target.username}** is banned from sobs.`));
-    return;
-  }
-
-  const total = await count(guild.id, target.id);
-  const ranked = await board(guild.id);
-  const index = ranked.findIndex((entry) => entry.userId === target.id);
-
-  await interaction.reply({
-    embeds: [
-      panel({
-        title: 'sobs',
-        description: section({
-          heading: target.id === interaction.user.id ? 'you' : 'user',
-          rows: [
-            ['user', target.username],
-            ['sobs', total],
-            ['rank', index === -1 ? 'unranked' : `#${index + 1} of ${ranked.length}`],
-          ],
-        }),
-        footer: 'raw sorrow. no noise.',
-      }),
-    ],
-  });
-}
-
-/* ── prefix ──────────────────────────────────────────────── */
 
 export async function prefix(message, args) {
   const guild = message.guild;

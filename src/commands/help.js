@@ -8,8 +8,10 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   const commands = [...interaction.client.commands.values()]
-    .sort((a, b) => a.data.name.localeCompare(b.data.name))
-    .map((command) => row(command.data.name, command.data.description));
+    .sort((a, b) => (a.data?.name ?? a.name).localeCompare(b.data?.name ?? b.name))
+    .map((command) => (command.data
+      ? row(command.data.name, command.data.description)
+      : row(`${prefixChar}${command.name}`, 'prefix only — no slash command')));
 
   await interaction.reply({
     embeds: [

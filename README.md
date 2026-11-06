@@ -38,7 +38,16 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `/userinfo [user]` | account age and presence |
 | `/purge <amount>` | clear 1–100 recent messages, manage-messages only |
 | `/snipe` | the last deleted message in this channel |
-| `/sobs [user] [top]` | sob counts and leaderboard, also usable as `,sobs` |
+
+`,` is the prefix. `/help` lists prefixed commands too.
+
+| prefixed | does |
+| --- | --- |
+| `,sobs` | count for you, or for a mention |
+| `,sobs lb` | top 10 in this server |
+| `,sobs add 5 @user` | manage server |
+| `,sobs enable` / `disable` | manage server |
+| `,sobs ban` / `unban @user` | owner only |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -97,7 +106,7 @@ src/
     userinfo.js     account + presence
     purge.js        message cleanup
     snipe.js        last deleted message
-    sobs.js         sob counts, leaderboard, prefix subcommands
+    sobs.js         prefix-only sob counts + leaderboard
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
@@ -117,6 +126,9 @@ the router finds it by name and never touches slash-only commands.
 ,sobs ban @user        owner only
 ,sobs unban @user      owner only
 ```
+
+a command can be prefix-only: `sobs` exports `name` and `prefix` with no `data`,
+so nothing is registered for it as a slash command and `/help` lists it under the prefix.
 
 prefix routing needs the privileged **message content intent** — without it
 discord sends empty message content, so `,sobs` cannot see anything. that is
