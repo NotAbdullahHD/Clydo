@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { panel, since, tape } from '../lib/theme.js';
+import { panel, section, sections, since } from '../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
   .setName('serverinfo')
@@ -9,31 +9,29 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction) {
   const { guild } = interaction;
 
-  const created = since(guild.createdTimestamp);
-  const boosts = `${guild.premiumSubscriptionCount ?? 0} (tier ${guild.premiumTier})`;
-
   await interaction.reply({
     embeds: [
       panel({
-        title: 'server parameters',
-        description: tape([
-          {
+        title: 'serverinfo',
+        description: sections(
+          section({
             heading: 'identity',
             rows: [
               ['name', guild.name],
               ['id', guild.id],
-              ['created', created],
+              ['created', since(guild.createdTimestamp)],
             ],
-          },
-          {
+          }),
+          section({
             heading: 'metrics',
             rows: [
-              ['members', String(guild.memberCount)],
-              ['boosts', boosts],
-              ['channels', String(guild.channels.cache.size)],
+              ['members', guild.memberCount],
+              ['boosts', `${guild.premiumSubscriptionCount ?? 0} (tier ${guild.premiumTier})`],
+              ['channels', guild.channels.cache.size],
             ],
-          },
-        ]),
+          }),
+        ),
+        footer: 'raw parameters. no noise.',
       }),
     ],
   });

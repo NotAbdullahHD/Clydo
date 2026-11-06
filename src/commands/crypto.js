@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { panel, tape } from '../lib/theme.js';
+import { panel, section, sections } from '../lib/theme.js';
 
 /** shorthand → coingecko id. raw coingecko ids work too. */
 const symbols = Object.freeze({
@@ -102,22 +102,27 @@ export async function execute(interaction) {
 
     const rows = [['price', money(entry.usd)]];
     if (typeof entry.usd_24h_change === 'number') {
-      rows.push(['change_24h', change(entry.usd_24h_change)]);
+      rows.push(['24h', change(entry.usd_24h_change)]);
     }
 
-    groups.push({ heading: symbol, rows });
+    groups.push(section({ heading: symbol, rows }));
   });
 
-  if (missing.length > 0) {
-    groups.push({ heading: 'not tracked', rows: missing.map((symbol) => [symbol, 'no quote']) });
+  const quoted = groups.length;
+
+  if (missing.length) {
+    groups.push(section({ heading: 'not tracked', rows: missing.map((symbol) => [symbol, 'no quote']) }));
   }
 
-  if (groups.every((group) => group.heading === 'not tracked')) {
+  if (quoted === 0) {
     await interaction.editReply({
       embeds: [
         panel({
-          title: 'unknown asset',
-          description: tape([{ rows: [['try', Object.keys(symbols).slice(0, 12).join(' ')]] }]),
+          title: 'crypto',
+          description: section({
+            heading: 'nothing quoted',
+            rows: [['try', Object.keys(symbols).slice(0, 8).join(' ')]],
+          }),
           footer: 'or pass a coingecko id',
         }),
       ],
@@ -125,14 +130,14 @@ export async function execute(interaction) {
     return;
   }
 
-  const stamp = new Date().toISOString().slice(11, 19);
+  const stamp = new Date().toISOString().slice(11, 16);
 
   await interaction.editReply({
     embeds: [
       panel({
-        title: 'crypto tape',
-        description: tape(groups),
-        footer: `usd spot • ${stamp} utc`,
+        title: 'crypto',
+        description: sections(...groups),
+        footer: `usd spot  •  ${stamp} utc`,
       }),
     ],
   });

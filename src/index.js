@@ -13,6 +13,7 @@ import {
   Routes,
 } from 'discord.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
+import { watch as watchSnipes } from './lib/snipes.js';
 import { panel } from './lib/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,7 @@ const commandDir = path.join(here, 'commands');
 const token = process.env.DISCORD_TOKEN?.trim();
 const guildId = process.env.GUILD_ID?.trim();
 const presenceIntent = process.env.PRESENCE_INTENT?.trim() === 'true';
+const messageIntent = process.env.MESSAGE_INTENT?.trim() === 'true';
 
 const log = (...args) => console.log('[clydo]', ...args);
 
@@ -34,11 +36,13 @@ if (!token) {
  * guilds is all a slash-command bot needs. presence is privileged: it has to be
  * toggled in the developer portal first, so it stays opt-in.
  */
-const intents = [GatewayIntentBits.Guilds];
+const intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
+if (messageIntent) intents.push(GatewayIntentBits.MessageContent);
 
 const client = new Client({ intents });
 client.commands = new Collection();
+watchSnipes(client);
 
 async function loadCommands() {
   const files = (await readdir(commandDir)).filter((file) => file.endsWith('.js')).sort();
@@ -78,6 +82,7 @@ async function registerCommands() {
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
+  log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
 
   ready.user.setPresence({
     status: 'online',
@@ -127,7 +132,7 @@ try {
   log('check that DISCORD_TOKEN is current and any requested intents are enabled.');
 
   if (String(error?.message ?? '').toLowerCase().includes('intent')) {
-    log('presence intent is privileged — enable it in the portal, then set PRESENCE_INTENT=true.');
+    log('an intent is privileged — enable it in the portal, then set PRESENCE_INTENT / MESSAGE_INTENT.');
   }
 
   process.exit(1);

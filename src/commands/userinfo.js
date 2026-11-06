@@ -1,5 +1,13 @@
 import { ActivityType, SlashCommandBuilder } from 'discord.js';
-import { panel, since, tape } from '../lib/theme.js';
+import { panel, section, sections, since } from '../lib/theme.js';
+
+/** discord's raw status keys read badly in a text block. */
+const statuses = Object.freeze({
+  online: 'online',
+  idle: 'idle',
+  dnd: 'do not disturb',
+  offline: 'offline',
+});
 
 const activityOf = (presence) => {
   const entry = presence?.activities?.find((item) => item.type !== ActivityType.Custom)
@@ -23,29 +31,29 @@ export async function execute(interaction) {
   const member = interaction.options.getMember('user') ?? interaction.member;
 
   const presence = member?.presence ?? null;
-  const created = since(user.createdTimestamp);
 
   await interaction.reply({
     embeds: [
       panel({
-        title: 'user data',
-        description: tape([
-          {
+        title: 'userinfo',
+        description: sections(
+          section({
             heading: 'account',
             rows: [
               ['user', user.username],
               ['id', user.id],
-              ['created', created],
+              ['created', since(user.createdTimestamp)],
             ],
-          },
-          {
+          }),
+          section({
             heading: 'presence',
             rows: [
-              ['status', presence?.status ?? 'not shared'],
+              ['status', statuses[presence?.status] ?? 'not shared'],
               ['activity', activityOf(presence)],
             ],
-          },
-        ]),
+          }),
+        ),
+        footer: 'raw data. no noise.',
       }),
     ],
   });

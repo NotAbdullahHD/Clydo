@@ -6,6 +6,11 @@ import { EmbedBuilder } from 'discord.js';
  * doctrine: raw typography, zero emojis, strict lower-case, monochrome only.
  * every response is built from the tokens below — never inline a colour,
  * a glyph or a separator in a command file.
+ *
+ * one shape for every reply:
+ *   title        the command name, lower-case
+ *   description  group headings (`›`) with data lines (`•`) beneath them
+ *   footer       a short closing line
  */
 
 /** primary panel colour — merges with discord dark mode for a native look. */
@@ -27,19 +32,37 @@ export const marks = Object.freeze({
 /** strict lower-case. */
 export const lower = (value) => String(value ?? '').toLowerCase();
 
-/** `› label  •  value` — the standard data point line. */
+/** `› label  •  value` — a single data point. */
 export function datapoint(label, value) {
   return `\`${marks.accent}\` ${lower(label)}  ${marks.dot}  ${value}`;
 }
 
-/** `› label  —  value` — the standard list row. */
+/** `› label  —  value` — a single list row. */
 export function row(label, value) {
   return `\`${marks.accent}\` ${lower(label)}  ${marks.dash}  ${value}`;
 }
 
+/** `• label  —  value` — a data line under a group heading. */
+export function entry(label, value) {
+  return `\`${marks.dot}\` ${lower(label)}  ${marks.dash}  ${value}`;
+}
+
+/** join lines without trailing whitespace noise. */
+export const block = (...lines) => lines.flat().filter(Boolean).join('\n');
+
+/** a group heading with its data lines beneath it. */
+export function section({ heading, rows = [] }) {
+  const lines = rows.filter(Boolean).map(([label, value]) => entry(label, value));
+  if (heading) lines.unshift(`\`${marks.accent}\` ${lower(heading)}`);
+  return lines.join('\n');
+}
+
+/** stack sections with one blank line between them. */
+export const sections = (...groups) => groups.filter(Boolean).join('\n\n');
+
 /**
- * human relative time. discord timestamps cannot render inside a code fence,
- * so the tape needs the text computed here.
+ * human relative time. discord timestamps cannot render inside a rich block,
+ * so dates are computed here.
  */
 export function since(date, now = Date.now()) {
   const seconds = Math.max(0, Math.round((now - new Date(date).getTime()) / 1000));
@@ -57,40 +80,6 @@ export function since(date, now = Date.now()) {
   }
 
   return 'just now';
-}
-
-/** join lines without trailing whitespace noise. */
-export const block = (...lines) => lines.flat().filter(Boolean).join('\n');
-
-/**
- * monospace tape — grouped, column-aligned data inside a fenced block.
- *
- * tape([
- *   { heading: 'btc', rows: [['price', '$68,432.10'], ['change_24h', '-1.42%']] },
- * ])
- *
- * renders:
- *   › btc
- *     price          $68,432.10
- *     change_24h     -1.42%
- */
-export function tape(groups, { gap = 3 } = {}) {
-  const rows = groups.flatMap((group) => group.rows ?? []);
-  const width = rows.reduce((max, [label]) => Math.max(max, lower(label).length), 0);
-  const lines = [];
-
-  for (const group of groups) {
-    if (group.heading) {
-      if (lines.length > 0) lines.push('');
-      lines.push(`${marks.accent} ${lower(group.heading)}`);
-    }
-
-    for (const [label, value] of group.rows ?? []) {
-      lines.push(`  ${lower(label).padEnd(width)}${' '.repeat(gap)}${value}`);
-    }
-  }
-
-  return ['```', ...lines, '```'].join('\n');
 }
 
 /**

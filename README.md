@@ -22,7 +22,10 @@ a discord bot built on raw typography. zero emojis, strict lower-case, no bright
 - no emojis, no colour accents, no images inside embeds
 
 all of it lives in `src/lib/theme.js`. commands never hard-code a colour or a glyph.
-data answers use `tape()` — grouped, column-aligned rows inside a monospace block.
+
+every reply is the same shape: the command name as the title, `section()` groups in the
+description — a `›` heading with `•` data lines under it — and a short footer. `/help`,
+`/ping` and every data command are built from those parts only.
 
 ## commands
 
@@ -34,6 +37,7 @@ data answers use `tape()` — grouped, column-aligned rows inside a monospace bl
 | `/serverinfo` | identity and metrics for the current server |
 | `/userinfo [user]` | account age and presence |
 | `/purge <amount>` | clear 1–100 recent messages, manage-messages only |
+| `/snipe` | the last deleted message in this channel |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -51,6 +55,7 @@ then fill `.env`:
 DISCORD_TOKEN=your bot token
 GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
+MESSAGE_INTENT=false
 ```
 
 invite the bot with the `bot` + `applications.commands` scopes, then:
@@ -66,6 +71,11 @@ otherwise globally (discord can take up to an hour to propagate).
 in the developer portal and set `PRESENCE_INTENT=true`. it is privileged and stays
 off by default so the bot can always log in.
 
+`/snipe` records who and when either way, but only reads the deleted text when the
+**message content intent** is enabled and `MESSAGE_INTENT=true`. both flags are
+off by default because a privileged intent the portal has not approved makes login
+fail outright.
+
 ## structure
 
 ```
@@ -73,6 +83,7 @@ src/
   index.js          client bootstrap, command loader, registration, interaction routing
   lib/theme.js      palette, marks, panel / datapoint / tape helpers
   lib/errors.js     single failure path, ref codes, stay-online handlers
+  lib/snipes.js     per-channel deleted message store + watcher
   commands/
     help.js         reads the live command registry
     ping.js         roundtrip + gateway latency
@@ -80,6 +91,7 @@ src/
     serverinfo.js   server parameters
     userinfo.js     account + presence
     purge.js        message cleanup
+    snipe.js        last deleted message
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
