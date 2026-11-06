@@ -75,7 +75,7 @@ const portal = await portalIntents();
 const presenceIntent = resolve(overrides.presence, portal.presence);
 const messageIntent = resolve(overrides.messageContent, portal.messageContent);
 
-const holder = await claim();
+const holder = claim();
 
 if (holder) {
   log(`another instance is already online (pid ${holder}) — exiting.`);
