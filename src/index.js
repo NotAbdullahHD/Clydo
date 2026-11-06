@@ -12,6 +12,7 @@ import {
   REST,
   Routes,
 } from 'discord.js';
+import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { panel } from './lib/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -19,6 +20,7 @@ const commandDir = path.join(here, 'commands');
 
 const token = process.env.DISCORD_TOKEN?.trim();
 const guildId = process.env.GUILD_ID?.trim();
+const presenceIntent = process.env.PRESENCE_INTENT?.trim() === 'true';
 
 const log = (...args) => console.log('[clydo]', ...args);
 
@@ -28,21 +30,32 @@ if (!token) {
   process.exit(1);
 }
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+/**
+ * guilds is all a slash-command bot needs. presence is privileged: it has to be
+ * toggled in the developer portal first, so it stays opt-in.
+ */
+const intents = [GatewayIntentBits.Guilds];
+if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
+
+const client = new Client({ intents });
 client.commands = new Collection();
 
 async function loadCommands() {
   const files = (await readdir(commandDir)).filter((file) => file.endsWith('.js')).sort();
 
   for (const file of files) {
-    const module = await import(pathToFileURL(path.join(commandDir, file)).href);
+    try {
+      const module = await import(pathToFileURL(path.join(commandDir, file)).href);
 
-    if (!module.data || typeof module.execute !== 'function') {
-      log(`skipped ${file} — needs "data" and "execute" exports.`);
-      continue;
+      if (!module.data || typeof module.execute !== 'function') {
+        log(`skipped ${file} — needs "data" and "execute" exports.`);
+        continue;
+      }
+
+      client.commands.set(module.data.name, module);
+    } catch (error) {
+      report(`loading ${file}`, error);
     }
-
-    client.commands.set(module.data.name, module);
   }
 
   log(`loaded ${client.commands.size} command(s).`);
@@ -64,6 +77,7 @@ async function registerCommands() {
 
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
+  log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
 
   ready.user.setPresence({
     status: 'online',
@@ -73,8 +87,7 @@ client.once(Events.ClientReady, async (ready) => {
   try {
     await registerCommands();
   } catch (error) {
-    log('command registration failed.');
-    console.error(error);
+    report('registering commands', error);
   }
 });
 
@@ -82,31 +95,40 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+
+  if (!command) {
+    await interaction
+      .reply({
+        embeds: [panel({ title: 'unknown', description: '`›` that command is gone. run /help.' })],
+        flags: MessageFlags.Ephemeral,
+      })
+      .catch(() => {});
+    return;
+  }
 
   try {
     await command.execute(interaction, client);
   } catch (error) {
-    console.error(error);
-
-    const payload = {
-      embeds: [panel({ title: 'error', description: 'that one broke. try again in a moment.' })],
-      flags: MessageFlags.Ephemeral,
-    };
-
-    if (interaction.deferred || interaction.replied) {
-      await interaction.followUp(payload).catch(() => {});
-      return;
-    }
-
-    await interaction.reply(payload).catch(() => {});
+    await failInteraction(interaction, error, `/${interaction.commandName}`);
   }
 });
 
-process.on('unhandledRejection', (error) => {
-  log('unhandled rejection.');
-  console.error(error);
-});
+client.on(Events.Error, (error) => report('gateway', error));
+client.on(Events.Warn, (message) => log('warn —', message));
+
+holdOnline(log);
 
 await loadCommands();
-await client.login(token);
+
+try {
+  await client.login(token);
+} catch (error) {
+  report('login', error);
+  log('check that DISCORD_TOKEN is current and any requested intents are enabled.');
+
+  if (String(error?.message ?? '').toLowerCase().includes('intent')) {
+    log('presence intent is privileged — enable it in the portal, then set PRESENCE_INTENT=true.');
+  }
+
+  process.exit(1);
+}

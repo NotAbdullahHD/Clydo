@@ -37,8 +37,61 @@ export function row(label, value) {
   return `\`${marks.accent}\` ${lower(label)}  ${marks.dash}  ${value}`;
 }
 
+/**
+ * human relative time. discord timestamps cannot render inside a code fence,
+ * so the tape needs the text computed here.
+ */
+export function since(date, now = Date.now()) {
+  const seconds = Math.max(0, Math.round((now - new Date(date).getTime()) / 1000));
+  const units = [
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['day', 86_400],
+    ['hour', 3_600],
+    ['minute', 60],
+  ];
+
+  for (const [name, size] of units) {
+    const value = Math.floor(seconds / size);
+    if (value >= 1) return `${value} ${name}${value === 1 ? '' : 's'} ago`;
+  }
+
+  return 'just now';
+}
+
 /** join lines without trailing whitespace noise. */
 export const block = (...lines) => lines.flat().filter(Boolean).join('\n');
+
+/**
+ * monospace tape — grouped, column-aligned data inside a fenced block.
+ *
+ * tape([
+ *   { heading: 'btc', rows: [['price', '$68,432.10'], ['change_24h', '-1.42%']] },
+ * ])
+ *
+ * renders:
+ *   › btc
+ *     price          $68,432.10
+ *     change_24h     -1.42%
+ */
+export function tape(groups, { gap = 3 } = {}) {
+  const rows = groups.flatMap((group) => group.rows ?? []);
+  const width = rows.reduce((max, [label]) => Math.max(max, lower(label).length), 0);
+  const lines = [];
+
+  for (const group of groups) {
+    if (group.heading) {
+      if (lines.length > 0) lines.push('');
+      lines.push(`${marks.accent} ${lower(group.heading)}`);
+    }
+
+    for (const [label, value] of group.rows ?? []) {
+      lines.push(`  ${lower(label).padEnd(width)}${' '.repeat(gap)}${value}`);
+    }
+  }
+
+  return ['```', ...lines, '```'].join('\n');
+}
 
 /**
  * build a clydo embed.
