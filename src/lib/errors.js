@@ -29,8 +29,16 @@ function reason(error) {
   return text.length > 140 ? `${text.slice(0, 137)}…` : text;
 }
 
+/** a second bot session answering the same interaction, or a 3s timeout. */
+const expired = new Set([10062, 40060]);
+
 /** answer whatever state the interaction is in. */
 export async function failInteraction(interaction, error, context = 'command') {
+  if (expired.has(error?.code)) {
+    console.warn(`[clydo] ${context} • interaction was already answered or expired.`);
+    return;
+  }
+
   const ref = report(context, error);
 
   const payload = {
