@@ -22,8 +22,10 @@ const commandDir = path.join(here, 'commands');
 
 const token = process.env.DISCORD_TOKEN?.trim();
 const guildId = process.env.GUILD_ID?.trim();
-const presenceIntent = process.env.PRESENCE_INTENT?.trim() === 'true';
-const messageIntent = process.env.MESSAGE_INTENT?.trim() === 'true';
+const overrides = {
+  presence: process.env.PRESENCE_INTENT?.trim().toLowerCase(),
+  messageContent: process.env.MESSAGE_INTENT?.trim().toLowerCase(),
+};
 
 const log = (...args) => console.log('[clydo]', ...args);
 
@@ -34,8 +36,44 @@ if (!token) {
 }
 
 /**
- * guilds is all a slash-command bot needs. presence is privileged: it has to be
- * toggled in the developer portal first, so it stays opt-in.
+ * portal flags. each intent has a normal bit and a "limited" bit set while the
+ * bot is under 100 servers — either one means the toggle is on. reading these
+ * beats trusting a hand-set env var, which is how this got wrong once already.
+ */
+const bits = {
+  presence: (1 << 12) | (1 << 13),
+  messageContent: (1 << 18) | (1 << 19),
+};
+
+async function portalIntents() {
+  try {
+    const application = await new REST().setToken(token).get('/applications/@me');
+    const flags = application?.flags ?? 0;
+
+    return {
+      presence: Boolean(flags & bits.presence),
+      messageContent: Boolean(flags & bits.messageContent),
+    };
+  } catch (error) {
+    report('reading portal intents', error);
+    return { presence: false, messageContent: false };
+  }
+}
+
+const resolve = (override, detected) => {
+  if (override === 'true') return true;
+  if (override === 'false') return false;
+  return detected;
+};
+
+const portal = await portalIntents();
+const presenceIntent = resolve(overrides.presence, portal.presence);
+const messageIntent = resolve(overrides.messageContent, portal.messageContent);
+
+/**
+ * guilds + guild messages is all a slash-command bot needs. a privileged intent
+ * is only requested when the portal has it on, because asking for an unapproved
+ * one fails the login outright.
  */
 const intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
