@@ -39,8 +39,11 @@ export function claim() {
 
 export function release() {
   try {
+    // never delete a lock another process owns — that would let a fresh copy
+    // start alongside the live one.
+    if (Number(readFileSync(file, 'utf8').trim()) !== process.pid) return;
     rmSync(file, { force: true });
   } catch {
-    // nothing to clean up.
+    // nothing to clean up, or the lock is already gone.
   }
 }
