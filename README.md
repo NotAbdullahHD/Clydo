@@ -38,7 +38,7 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `/userinfo [user]` | account age and presence |
 | `/purge <amount>` | clear 1–100 recent messages, manage-messages only |
 | `/snipe` | the last deleted message in this channel |
-| `/sobs [user] [top]` | sob once, read someone's count, or the server leaderboard |
+| `/sobs [user] [top]` | sob counts and leaderboard, also usable as `,sobs` |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -57,6 +57,8 @@ DISCORD_TOKEN=your bot token
 GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
 MESSAGE_INTENT=false
+PREFIX=,
+OWNER_ID=
 ```
 
 invite the bot with the `bot` + `applications.commands` scopes, then:
@@ -84,6 +86,7 @@ src/
   index.js          client bootstrap, command loader, registration, interaction routing
   lib/theme.js      palette, marks, panel / datapoint / tape helpers
   lib/errors.js     single failure path, ref codes, stay-online handlers
+  lib/prefix.js     `,` message routing
   lib/snipes.js     per-channel deleted message store + watcher
   lib/sobs.js       json-backed sob counts, scoped per server
   commands/
@@ -94,11 +97,30 @@ src/
     userinfo.js     account + presence
     purge.js        message cleanup
     snipe.js        last deleted message
-    sobs.js         sob counter + leaderboard
+    sobs.js         sob counts, leaderboard, prefix subcommands
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
 ```
+
+## prefix
+
+every message command uses `,` — change it with `PREFIX`. a command opts in by
+exporting a `prefix(message, args)` function next to its `data` and `execute`;
+the router finds it by name and never touches slash-only commands.
+
+```
+,sobs                  count for you, or for a mention
+,sobs lb               top 10 in this server
+,sobs add 5 @user      manage server
+,sobs enable|disable   manage server
+,sobs ban @user        owner only
+,sobs unban @user      owner only
+```
+
+prefix routing needs the privileged **message content intent** — without it
+discord sends empty message content, so `,sobs` cannot see anything. that is
+why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 
 ## snipes and sobs
 

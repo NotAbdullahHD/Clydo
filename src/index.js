@@ -13,6 +13,7 @@ import {
   Routes,
 } from 'discord.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
+import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { panel } from './lib/theme.js';
 
@@ -43,6 +44,7 @@ if (messageIntent) intents.push(GatewayIntentBits.MessageContent);
 const client = new Client({ intents });
 client.commands = new Collection();
 watchSnipes(client);
+routePrefix(client);
 
 async function loadCommands() {
   const files = (await readdir(commandDir)).filter((file) => file.endsWith('.js')).sort();
@@ -83,6 +85,11 @@ client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
   log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
+  log(`prefix: ${prefix}`);
+
+  if (!messageIntent) {
+    log(`prefix commands like ${prefix}sobs are inert until MESSAGE_INTENT=true.`);
+  }
 
   ready.user.setPresence({
     status: 'online',

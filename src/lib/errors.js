@@ -69,6 +69,29 @@ export async function failInteraction(interaction, error, context = 'command') {
   }
 }
 
+/** same failure path for a prefix message. */
+export async function failMessage(message, error, context = 'command') {
+  if (expired.has(error?.code)) {
+    console.warn(`[clydo] ${context} • message was already gone.`);
+    return;
+  }
+
+  const ref = report(context, error);
+
+  await message
+    .reply({
+      embeds: [
+        panel({
+          title: 'error',
+          description: `\`›\` that one broke.\n\`›\` ref ${ref}`,
+          footer: reason(error),
+        }),
+      ],
+      allowedMentions: { parse: [] },
+    })
+    .catch(() => {});
+}
+
 /**
  * keep the process online. a slash-command bot has no supervisor in this setup,
  * so an escaped rejection or exception drops it offline until someone notices.

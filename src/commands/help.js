@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
+import { prefix as prefixChar } from '../lib/prefix.js';
 import { marks, panel, row, block } from '../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
@@ -18,7 +19,11 @@ export async function execute(interaction) {
         fields: [
           {
             name: marks.rule,
-            value: block(row('handle', 'clydo'), row('type', 'raw, minimal, lower-case only')),
+            value: block(
+              row('handle', 'clydo'),
+              row('prefix', prefixChar),
+              row('type', 'raw, minimal, lower-case only'),
+            ),
           },
         ],
         footer: 'raw type. no noise.',

@@ -31,26 +31,25 @@ export async function execute(interaction) {
   const member = interaction.options.getMember('user') ?? interaction.member;
 
   const presence = member?.presence ?? null;
+  const rows = [
+    ['user', user.username],
+    ['id', user.id],
+    ['created', since(user.createdTimestamp)],
+  ];
 
   await interaction.reply({
     embeds: [
       panel({
         title: 'userinfo',
         description: sections(
-          section({
-            heading: 'account',
-            rows: [
-              ['user', user.username],
-              ['id', user.id],
-              ['created', since(user.createdTimestamp)],
-            ],
-          }),
+          section({ heading: 'account', rows }),
           section({
             heading: 'presence',
-            rows: [
-              ['status', statuses[presence?.status] ?? 'not shared'],
-              ['activity', activityOf(presence)],
-            ],
+            // with the intent off, discord sends no presence at all — say that
+            // once instead of printing a status and a fake "none" activity.
+            rows: presence
+              ? [['status', statuses[presence.status] ?? presence.status], ['activity', activityOf(presence)]]
+              : [['status', 'not shared']],
           }),
         ),
         footer: 'raw data. no noise.',
