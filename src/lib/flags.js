@@ -60,13 +60,14 @@ export async function addPoint(guildId, userId, username) {
 }
 
 /** highest scores in a server, best first. */
-export async function board(guildId, limit = 10) {
+export async function board(guildId, limit = 10, skip = 0) {
   const collection = db()?.collection('flags');
 
   if (collection) {
     const docs = await collection
       .find({ guildId }, { projection: { userId: 1, username: 1, score: 1 } })
       .sort({ score: -1 })
+      .skip(skip)
       .limit(limit)
       .toArray();
 
@@ -84,5 +85,17 @@ export async function board(guildId, limit = 10) {
       score: entry.score,
     }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .slice(skip, skip + limit);
+}
+
+/** how many people have a score in this server — used for page counts. */
+export async function total(guildId) {
+  const collection = db()?.collection('flags');
+
+  if (collection) return collection.countDocuments({ guildId });
+
+  const data = await loadJson();
+  const prefix = `${guildId}:`;
+
+  return Object.keys(data.scores).filter((id) => id.startsWith(prefix)).length;
 }

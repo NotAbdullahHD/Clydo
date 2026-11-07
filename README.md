@@ -20,6 +20,8 @@ a discord bot built on raw typography. zero emojis, strict lower-case, no bright
 - accents are limited to `›`, `•`, `—` and `━━━━━━━━━━`
 - every title, field name, footer and label is lower-case
 - no emojis, no colour accents, no images inside embeds
+- the flag game is the one exception: it keeps labubu's embed, its ❓ / 📊 buttons and
+  plain-text results, because it is the same game people already know
 
 all of it lives in `src/lib/theme.js`. commands never hard-code a colour or a glyph.
 
@@ -49,7 +51,8 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `,sobs enable` / `disable` | manage server |
 | `,sobs ban` / `unban @user` | owner only |
 | `,flag` | guess the flag — ten seconds a round |
-| `,flag lb` | top 10 flag guessers in this server |
+| `,flaghint` | hint for the round running in this channel |
+| `,flaglb` | flag leaderboard, ten per page |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -113,7 +116,9 @@ src/
     purge.js        message cleanup
     snipe.js        last deleted message
     sobs.js         prefix-only sob counts + leaderboard
-    flag.js         prefix-only flag round + scores
+    flag.js         prefix-only flag round
+    flaghint.js     hint for the running round
+    flaglb.js       flag leaderboard with pages
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
