@@ -69,6 +69,7 @@ opens the same panel from chat.
 | `,honeypot punishment <ban|softban|kick|timeout|delete>` | what happens to whoever posts in it |
 | `,honeypot message [text]` | rewrites the warning, `reset` puts the default back |
 | `,honeypot settings` | current trap state |
+| `,honeypot test [@user]` | dry run — would that member be caught, or exempt |
 | `,honeypot disable` | stops the trap and removes the channel |
 | `,purge <1-100>` | clear recent messages |
 | `,ban @user [reason]` | ban, with a DM first |

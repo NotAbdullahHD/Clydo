@@ -1,6 +1,7 @@
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import {
   create,
+  exemption,
   get,
   isPunishment,
   notice,
@@ -185,6 +186,34 @@ export async function prefix(message, args) {
 
   if (sub === 'preview') {
     await reply(notice(await get(message.guild.id)));
+    return;
+  }
+
+  if (sub === 'test' || sub === 'check') {
+    const target = rest[0];
+    const member = target
+      ? await message.guild.members.fetch(target.replace(/[<@!>]/g, '')).catch(() => null)
+      : (message.member ?? await message.guild.members.fetch(message.author.id).catch(() => null));
+
+    if (!member) {
+      await reply(no('could not find that member here.'));
+      return;
+    }
+
+    const why = exemption(message.guild, member.id, member, message.client.user.id);
+    const record = await get(message.guild.id);
+
+    await reply(panel({
+      title: 'honeypot test',
+      description: block(
+        datapoint('member', `<@${member.id}>`),
+        datapoint('verdict', why ? `exempt — ${why}` : `would be ${wording[record.punishment]}`),
+        datapoint('trap', record.enabled ? 'armed' : 'not set up'),
+      ),
+      footer: why === 'server owner'
+        ? 'discord will not let any bot ban the owner of a server — test with a normal member.'
+        : 'nothing was deleted or punished by this check.',
+    }));
     return;
   }
 

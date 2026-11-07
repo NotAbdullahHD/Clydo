@@ -136,9 +136,16 @@ export async function create(guild, record) {
     reason: 'honeypot trap',
     permissionOverwrites: [
       {
+        // postable on purpose: a channel nobody can type in is a channel that
+        // can never fire, because the only people who bypass the deny are the
+        // owner and admins — the ones who are exempt. the warning is the lock.
         id: guild.roles.everyone.id,
-        allow: [PermissionFlagsBits.ViewChannel],
-        deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads],
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+        ],
+        deny: [PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.CreatePrivateThreads],
       },
       {
         id: guild.members.me.id,
@@ -175,10 +182,10 @@ export async function remove(guild, record) {
  * skipped message says why in the log — a trap that quietly ignores people is
  * worse than no trap at all.
  */
-function exemption(message, member) {
-  if (message.author.id === message.client.user.id) return 'the bot itself';
-  if (message.author.id === message.guild.ownerId) return 'server owner';
-  if (process.env.OWNER_ID?.trim() && message.author.id === process.env.OWNER_ID.trim()) return 'bot owner';
+export function exemption(guild, authorId, member, botId) {
+  if (authorId === botId) return 'the bot itself';
+  if (authorId === guild.ownerId) return 'server owner';
+  if (process.env.OWNER_ID?.trim() && authorId === process.env.OWNER_ID.trim()) return 'bot owner';
   if (member.permissions?.has(PermissionFlagsBits.Administrator)) return 'administrator';
   if (member.permissions?.has(PermissionFlagsBits.ManageGuild)) return 'manage server';
   if (member.permissions?.has(PermissionFlagsBits.ManageChannels)) return 'manage channels';
@@ -240,7 +247,7 @@ export function watch(client) {
         return;
       }
 
-      const why = exemption(message, member);
+      const why = exemption(message.guild, message.author.id, member, client.user.id);
 
       if (why) {
         console.log(`[slink] honeypot • ignored ${message.author.username} (${why})`);
