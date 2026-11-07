@@ -64,6 +64,7 @@ opens the same panel from chat.
 | `,avatar [@user]` | their avatar at 1024 |
 | `,banner [@user]` | their profile banner, if they have one |
 | `,afk [reason]` | mark yourself away; your next message clears it |
+| `,customize [avatar|banner|bio|reset]` | this server's look, server owner only |
 | `,purge <1-100>` | clear recent messages |
 | `,ban @user [reason]` | ban, with a DM first |
 | `,kick @user [reason]` | kick, with a DM first |
@@ -206,6 +207,7 @@ src/
       avatar.js     avatars
       banner.js     profile banners
       afk.js        afk notices
+      customize.js  per-server appearance
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload

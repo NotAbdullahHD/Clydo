@@ -4,6 +4,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
+import { get as appearance } from '../../lib/appearance.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { block, entry, panel } from '../../lib/theme.js';
 
@@ -33,12 +34,13 @@ function grouped(client) {
   return map;
 }
 
-function build(client, selected = home) {
+function build(client, selected = home, look = null) {
   const modules = grouped(client);
   const total = client.commands.size;
 
   const description = selected === home
-    ? 'a quiet discord bot: reactions that earn sobs, a few games, and the usual moderation.'
+    ? ['a quiet discord bot: reactions that earn sobs, a few games, and the usual moderation.', look?.bio]
+      .filter(Boolean).join('\n\n')
     : block(...(modules.get(selected) ?? []).sort()
       .map((name) => entry(name, describe(client.commands.get(name)))));
 
@@ -55,7 +57,7 @@ function build(client, selected = home) {
       : undefined,
   });
 
-  const avatar = client.user?.displayAvatarURL({ size: 256 });
+  const avatar = look?.avatar || client.user?.displayAvatarURL({ size: 256 });
   if (avatar) embed.setThumbnail(avatar);
 
   const menu = new StringSelectMenuBuilder()
@@ -84,14 +86,14 @@ function detail(client, name) {
   });
 }
 
-function live(message, client, userId) {
+function live(message, client, userId, look = null) {
   const collector = message.createMessageComponentCollector({
     filter: (press) => press.user.id === userId,
     time: 120_000,
   });
 
   collector.on('collect', async (press) => {
-    await press.update(build(client, press.values?.[0] ?? home));
+    await press.update(build(client, press.values?.[0] ?? home, look));
   });
 
   collector.on('end', () => {
@@ -100,8 +102,9 @@ function live(message, client, userId) {
 }
 
 export async function execute(interaction) {
-  const reply = await interaction.reply({ ...build(interaction.client), fetchReply: true });
-  live(reply, interaction.client, interaction.user.id);
+  const look = interaction.guildId ? await appearance(interaction.guildId) : null;
+  const reply = await interaction.reply({ ...build(interaction.client, home, look), fetchReply: true });
+  live(reply, interaction.client, interaction.user.id, look);
 }
 
 export async function prefix(message, args) {
@@ -117,6 +120,7 @@ export async function prefix(message, args) {
     return;
   }
 
-  const sent = await message.reply(build(message.client));
-  live(sent, message.client, message.author.id);
+  const look = message.guild ? await appearance(message.guild.id) : null;
+  const sent = await message.reply(build(message.client, home, look));
+  live(sent, message.client, message.author.id, look);
 }
