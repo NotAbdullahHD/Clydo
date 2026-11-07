@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
-import { flags } from '../lib/flag-list.js';
-import { addPoint, board, total } from '../lib/flags.js';
-import { palette } from '../lib/theme.js';
+import { flags } from '../../lib/flag-list.js';
+import { addPoint, board, total } from '../../lib/flags.js';
+import { palette } from '../../lib/theme.js';
 
 /**
  * guess the flag — kept as labubu had it.

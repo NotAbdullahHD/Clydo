@@ -1,7 +1,7 @@
 import { PermissionFlagsBits } from 'discord.js';
-import { prefix as prefixChar } from '../lib/prefix.js';
-import { addSobs, board, count, setBanned, setEnabled, settings } from '../lib/sobs.js';
-import { panel } from '../lib/theme.js';
+import { prefix as prefixChar } from '../../lib/prefix.js';
+import { addSobs, board, count, setBanned, setEnabled, settings } from '../../lib/sobs.js';
+import { panel } from '../../lib/theme.js';
 
 /** prefix only. there is no slash command for sobs. */
 export const name = 'sobs';

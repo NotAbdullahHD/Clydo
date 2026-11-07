@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { datapoint, block, panel, marks } from '../lib/theme.js';
+import { datapoint, block, panel, marks } from '../../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
   .setName('ping')

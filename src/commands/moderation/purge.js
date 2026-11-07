@@ -1,5 +1,5 @@
 import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { block, entry, panel } from '../lib/theme.js';
+import { block, entry, panel } from '../../lib/theme.js';
 
 const maxAgeDays = 14;
 

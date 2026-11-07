@@ -118,25 +118,40 @@ watchSnipes(client);
 routePrefix(client);
 watchSobReactions(client);
 
+/** commands live in category folders — fun, moderation, utility — so walk them. */
+async function collect(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) files.push(...(await collect(full)));
+    else if (entry.name.endsWith('.js')) files.push(full);
+  }
+
+  return files.sort();
+}
+
 async function loadCommands() {
-  const files = (await readdir(commandDir)).filter((file) => file.endsWith('.js')).sort();
+  const files = await collect(commandDir);
 
   for (const file of files) {
     try {
-      const module = await import(pathToFileURL(path.join(commandDir, file)).href);
+      const module = await import(pathToFileURL(file).href);
 
       const name = module.data?.name ?? module.name;
       const slashable = Boolean(module.data) && typeof module.execute === 'function';
       const prefixable = typeof module.prefix === 'function';
 
       if (!name || (!slashable && !prefixable)) {
-        log(`skipped ${file} — needs "data"+"execute", "prefix", or both.`);
+        log(`skipped ${path.basename(file)} — needs "data"+"execute", "prefix", or both.`);
         continue;
       }
 
       client.commands.set(name, module);
     } catch (error) {
-      report(`loading ${file}`, error);
+      report(`loading ${path.basename(file)}`, error);
     }
   }
 

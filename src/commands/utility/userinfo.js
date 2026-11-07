@@ -1,5 +1,5 @@
 import { ActivityType, SlashCommandBuilder } from 'discord.js';
-import { panel, section, sections, since } from '../lib/theme.js';
+import { panel, section, sections, since } from '../../lib/theme.js';
 
 /** discord's raw status keys read badly in a text block. */
 const statuses = Object.freeze({

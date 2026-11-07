@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { prefix as prefixChar } from '../lib/prefix.js';
-import { marks, panel, row, block } from '../lib/theme.js';
+import { prefix as prefixChar } from '../../lib/prefix.js';
+import { marks, panel, row, block } from '../../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
   .setName('help')

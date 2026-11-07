@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { panel, section, sections, since } from '../lib/theme.js';
+import { panel, section, sections, since } from '../../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
   .setName('serverinfo')

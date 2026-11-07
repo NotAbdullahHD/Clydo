@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
-import { board, total } from '../lib/flags.js';
-import { palette } from '../lib/theme.js';
+import { board, total } from '../../lib/flags.js';
+import { palette } from '../../lib/theme.js';
 
 /** the leaderboard labubu had: ten a page, ← → under it, medals on top three. */
 

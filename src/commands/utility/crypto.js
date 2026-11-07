@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { panel, section, sections } from '../lib/theme.js';
+import { panel, section, sections } from '../../lib/theme.js';
 
 /** shorthand → coingecko id. raw coingecko ids work too. */
 const symbols = Object.freeze({

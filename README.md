@@ -53,6 +53,11 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `,flag` | guess the flag — ten seconds a round |
 | `,flaghint` | hint for the round running in this channel |
 | `,flaglb` | flag leaderboard, ten per page |
+| `,trivia [category]` | trivia round — fifteen seconds |
+| `,trivialb` | trivia leaderboard, ten per page |
+| `,fm` / `,fm set <user>` | last.fm now playing |
+| `,google <query>` | google search, ten results per page |
+| `,image <query>` | google image search |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -72,6 +77,8 @@ GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
 MESSAGE_INTENT=false
 MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/clydo?appName=clydo
+LASTFM_API_KEY=
+SERPAPI_KEY=
 PREFIX=,
 OWNER_ID=
 ```
@@ -105,20 +112,32 @@ src/
   lib/reactions.js  sob emoji → author count
   lib/snipes.js     per-channel deleted message store + watcher
   lib/sobs.js       sob counts, server settings, award ledger
-  lib/flags.js      flag game scores, scoped per server
+  lib/scores.js     score tables — add a point, page them, count players
+  lib/flags.js      flag game scores
   lib/flag-list.js  country codes, names, accepted answers
+  lib/trivia.js     trivia scores
+  lib/trivia-questions.js  the labubu question bank
+  lib/lastfm.js     one last.fm username per discord user
   commands/
-    help.js         reads the live command registry
-    ping.js         roundtrip + gateway latency
-    crypto.js       coingecko tape
-    serverinfo.js   server parameters
-    userinfo.js     account + presence
-    purge.js        message cleanup
-    snipe.js        last deleted message
-    sobs.js         prefix-only sob counts + leaderboard
-    flag.js         prefix-only flag round
-    flaghint.js     hint for the running round
-    flaglb.js       flag leaderboard with pages
+    fun/
+      sobs.js       prefix-only sob counts + leaderboard
+      flag.js       prefix-only flag round
+      flaghint.js   hint for the running round
+      flaglb.js     flag leaderboard with pages
+      trivia.js     trivia round + points
+      trivialb.js   trivia leaderboard with pages
+      fm.js         last.fm now playing
+      google.js     google search and image search
+      image.js      image search alias
+    moderation/
+      purge.js      message cleanup
+    utility/
+      help.js       reads the live command registry
+      ping.js       roundtrip + gateway latency
+      crypto.js     coingecko tape
+      serverinfo.js server parameters
+      userinfo.js   account + presence
+      snipe.js      last deleted message
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
@@ -157,10 +176,10 @@ why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 ## storage
 
 sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
-database name comes from the uri path (`/clydo`), four collections (`counts`,
-`guilds`, `awards`, `flags`) with a unique index on each key, plus a 30-day ttl
-that trims the award ledger. with no uri, everything falls back to
-`data/sobs.json` and `data/flags.json`, so a fresh checkout still runs. an existing json file is moved
+database name comes from the uri path (`/clydo`), six collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`) with a
+unique index on each key, plus a 30-day ttl that trims the award ledger. with no
+uri, everything falls back to `data/*.json` — sobs, flags, trivia and lastfm — so
+a fresh checkout still runs. an existing json file is moved
 into an empty database once and then renamed `.migrated`.
 
 ## snipes and sobs

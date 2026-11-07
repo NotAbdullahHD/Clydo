@@ -1,6 +1,6 @@
 import { GatewayIntentBits, SlashCommandBuilder } from 'discord.js';
-import { peek } from '../lib/snipes.js';
-import { panel, section, sections, since } from '../lib/theme.js';
+import { peek } from '../../lib/snipes.js';
+import { panel, section, sections, since } from '../../lib/theme.js';
 
 /** resolved from the portal at boot, so ask the client rather than the env. */
 const contentOn = (client) =>
