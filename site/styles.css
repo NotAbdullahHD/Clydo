@@ -1256,13 +1256,26 @@ h2 {
 .field { display: grid; gap: 6px; margin-bottom: 11px; }
 .field:last-child { margin-bottom: 0; }
 
-.field > label {
+.field > label,
+.field > span {
   color: var(--dim);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
+
+.field-inline-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] { accent-color: var(--accent); }
 
 .input, .area {
   width: 100%;
