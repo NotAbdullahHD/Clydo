@@ -58,6 +58,12 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `,fm` / `,fm set <user>` | last.fm now playing |
 | `,google <query>` | google search, ten results per page |
 | `,image <query>` | google image search |
+| `,family marry @user` | propose — accept or decline buttons |
+| `,family divorce` | end the marriage |
+| `,family adopt @user` | adopt a child |
+| `,family disown @user` | remove a child |
+| `,family tree [user]` | partner, parent and children |
+| `,marry` / `,divorce` / `,adopt` / `,disown` / `,tree` | the same five on their own |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -118,6 +124,7 @@ src/
   lib/trivia.js     trivia scores
   lib/trivia-questions.js  the labubu question bank
   lib/lastfm.js     one last.fm username per discord user
+  lib/family.js     partner, parent and children per user
   commands/
     fun/
       sobs.js       prefix-only sob counts + leaderboard
@@ -129,6 +136,12 @@ src/
       fm.js         last.fm now playing
       google.js     google search and image search
       image.js      image search alias
+      family.js     family subcommands
+      marry.js      proposal flow
+      divorce.js    end a marriage
+      adopt.js      adopt a child
+      disown.js     remove a child
+      tree.js       partner and children
     moderation/
       purge.js      message cleanup
     utility/
@@ -176,10 +189,10 @@ why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 ## storage
 
 sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
-database name comes from the uri path (`/clydo`), six collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`) with a
-unique index on each key, plus a 30-day ttl that trims the award ledger. with no
-uri, everything falls back to `data/*.json` — sobs, flags, trivia and lastfm — so
-a fresh checkout still runs. an existing json file is moved
+database name comes from the uri path (`/clydo`), seven collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`,
+`family`) with a unique index on each key, plus a 30-day ttl that trims the award
+ledger. with no uri, everything falls back to `data/*.json` — sobs, flags, trivia,
+lastfm and family — so a fresh checkout still runs. an existing json file is moved
 into an empty database once and then renamed `.migrated`.
 
 ## snipes and sobs

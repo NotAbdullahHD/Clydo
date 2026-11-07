@@ -33,6 +33,7 @@ export async function connect(uri, fallbackName = 'clydo', log = () => {}) {
     await database.collection('flags').createIndex({ guildId: 1, userId: 1 }, { unique: true });
     await database.collection('trivia').createIndex({ guildId: 1, userId: 1 }, { unique: true });
     await database.collection('lastfm').createIndex({ userId: 1 }, { unique: true });
+    await database.collection('family').createIndex({ userId: 1 }, { unique: true });
     await database.collection('awards').createIndex({ guildId: 1, messageId: 1, reactorId: 1 }, { unique: true });
     // old awards are pruned by the server, so the ledger cannot grow forever.
     await database.collection('awards').createIndex({ at: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
