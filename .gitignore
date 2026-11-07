@@ -9,3 +9,7 @@ Thumbs.db
 # runtime counts
 data/
 .slink.pid
+
+# landing page build artifact
+slink-site.zip
+.preview-site.mjs

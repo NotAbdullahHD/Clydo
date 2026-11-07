@@ -287,3 +287,12 @@ export async function execute(interaction) {
 ```
 
 `/help` picks it up automatically.
+
+## landing page
+
+`site/` is a static landing page — one html file, one stylesheet, no build step.
+the hero loads `site/assets/character.png` and falls back to the bot's profile
+picture when that file is missing.
+
+to deploy, drag `slink-site.zip` (or the `site/` folder itself) into Cloudflare
+Pages. the zip is a build artifact and is not committed.

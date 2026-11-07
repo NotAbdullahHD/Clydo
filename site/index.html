@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>slink — one bot, one comma</title>
+<meta name="description" content="moderation, a balanced economy, per-server looks and the small things. 48 commands on the , prefix. nothing behind a paywall.">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/pfp.png">
+<meta property="og:title" content="slink — one bot, one comma">
+<meta property="og:description" content="48 commands on the , prefix. moderation, economy, per-server looks. no premium tier.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/pfp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <img src="assets/pfp.png" alt="" width="30" height="30">
+      <span>slink</span>
+    </a>
+
+    <nav class="nav-links" id="nav-links">
+      <a href="#features">features</a>
+      <a href="#commands">commands</a>
+      <a href="#prefix">prefix</a>
+      <a href="#faq">faq</a>
+    </nav>
+
+    <div class="nav-cta">
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="menu">
+        <span></span><span></span>
+      </button>
+      <a class="btn btn-solid btn-sm" href="https://discord.com/oauth2/authorize?client_id=1568375755459534979&scope=bot%20applications.commands&permissions=1099981777990" target="_blank" rel="noreferrer">add to discord</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-in">
+
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot"></span> online · 48 commands</p>
+
+        <h1>everything your server needs,<br><span class="grad">behind one comma.</span></h1>
+
+        <p class="lede">
+          moderation, an economy that stays balanced, per-server looks and the small
+          things — all typed after <code class="kbd">,</code>. nothing is locked
+          behind a payment.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-solid" href="https://discord.com/oauth2/authorize?client_id=1568375755459534979&scope=bot%20applications.commands&permissions=1099981777990" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            add to discord
+          </a>
+          <a class="btn btn-ghost" href="#commands">browse commands</a>
+        </div>
+      </div>
+
+      <div class="hero-art">
+        <div class="orb-ring" aria-hidden="true"></div>
+        <div class="orb">
+          <img src="assets/character.png" alt="slink" id="orb-img"
+               onerror="this.onerror=null;this.src='assets/pfp.png'">
+        </div>
+
+        <span class="chip chip-a">moderation</span>
+        <span class="chip chip-b">economy</span>
+        <span class="chip chip-c"><code>,customize</code></span>
+        <span class="chip chip-d">,afk</span>
+      </div>
+
+    </div>
+
+    <div class="wrap">
+      <dl class="stats">
+        <div><dt>commands</dt><dd>48</dd></div>
+        <div><dt>economy</dt><dd>13</dd></div>
+        <div><dt>moderation</dt><dd>10</dd></div>
+        <div><dt>paywalls</dt><dd>0</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <p class="kicker">what it does</p>
+      <h2>the boring parts, handled.</h2>
+
+      <div class="grid">
+        <article class="card reveal">
+          <h3>moderation</h3>
+          <p>ban, kick, timeout, warn, clear, purge, slowmode, role and nick. short
+            confirmations, no wall of text in the channel.</p>
+          <p class="card-tags"><code>ban</code><code>timeout</code><code>purge</code><code>warn</code></p>
+        </article>
+
+        <article class="card reveal">
+          <h3>an economy you can keep</h3>
+          <p>one coin, two pockets. daily, work and beg pay out small on purpose, so
+            the leaderboard is still worth reading next month.</p>
+          <p class="card-tags"><code>daily</code><code>work</code><code>deposit</code><code>lb</code></p>
+        </article>
+
+        <article class="card reveal">
+          <h3>it can look like yours</h3>
+          <p><code class="kbd">,customize</code> changes the bot's avatar, banner and bio
+            in your server only — other servers keep the stock look. server owner only,
+            with a reset.</p>
+          <p class="card-tags"><code>avatar</code><code>banner</code><code>bio</code><code>reset</code></p>
+        </article>
+
+        <article class="card reveal">
+          <h3>the small things</h3>
+          <p><code class="kbd">,afk</code> tells people you're gone and greets you when
+            you're back. <code class="kbd">,snipe</code> shows what someone deleted before
+            you could read it.</p>
+          <p class="card-tags"><code>afk</code><code>snipe</code></p>
+        </article>
+
+        <article class="card reveal">
+          <h3>lookups</h3>
+          <p>user and server info, web and image search, crypto prices, trivia and flags.
+            the commands you reach for mid-conversation.</p>
+          <p class="card-tags"><code>userinfo</code><code>google</code><code>crypto</code><code>trivia</code></p>
+        </article>
+
+        <article class="card reveal">
+          <h3>server drama, optional</h3>
+          <p>marry, adopt, disown, divorce, family trees and a <code class="kbd">,sobs</code>
+            counter. entirely your server's fault.</p>
+          <p class="card-tags"><code>marry</code><code>adopt</code><code>family</code><code>sobs</code></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="commands">
+    <div class="wrap">
+      <p class="kicker">commands</p>
+      <h2>48 of them. all free.</h2>
+
+      <div class="split">
+        <div class="palette">
+          <div class="palette-group reveal">
+            <h4>economy <span>13</span></h4>
+            <p><code>balance</code><code>deposit</code><code>withdraw</code><code>pay</code><code>daily</code><code>work</code><code>beg</code><code>bonus</code><code>inventory</code><code>profile</code><code>shop</code><code>buy</code><code>leaderboard</code></p>
+          </div>
+
+          <div class="palette-group reveal">
+            <h4>moderation <span>10</span></h4>
+            <p><code>ban</code><code>unban</code><code>kick</code><code>timeout</code><code>warn</code><code>clear</code><code>purge</code><code>slowmode</code><code>role</code><code>nick</code></p>
+          </div>
+
+          <div class="palette-group reveal">
+            <h4>utility <span>10</span></h4>
+            <p><code>afk</code><code>avatar</code><code>banner</code><code>customize</code><code>crypto</code><code>help</code><code>ping</code><code>serverinfo</code><code>snipe</code><code>userinfo</code></p>
+          </div>
+
+          <div class="palette-group reveal">
+            <h4>fun <span>15</span></h4>
+            <p><code>adopt</code><code>disown</code><code>divorce</code><code>family</code><code>flag</code><code>flaghint</code><code>flaglb</code><code>fm</code><code>google</code><code>image</code><code>marry</code><code>sobs</code><code>tree</code><code>trivia</code><code>trivialb</code></p>
+          </div>
+        </div>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span></span><span></span><span></span>
+            <em>#general</em>
+          </div>
+<pre><code><span class="cmd">,dep 500</span>
+<span class="ok">✅ you: deposited 🟡 500 into your bank.</span>
+
+<span class="cmd">,with all</span>
+<span class="ok">✅ you: withdrew 🟡 1.9K from your bank.</span>
+
+<span class="cmd">,bal</span>
+<span class="out">🟡 0 · 🏦 1.9K</span>
+
+<span class="cmd">,beg</span>
+<span class="bad">❌ not this time. try again in 4m.</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="prefix">
+    <div class="wrap">
+      <p class="kicker">how you use it</p>
+      <h2>two slash commands. forty-six typed.</h2>
+
+      <div class="prefix-grid">
+        <div class="prefix-note reveal">
+          <p>everything lives behind <code class="kbd">,</code> — the two exceptions are
+            <code class="kbd">/help</code> and <code class="kbd">/ping</code>, because
+            discovering a bot shouldn't need a manual.</p>
+          <p>aliases exist so nobody types the long word: <code class="kbd">,with</code>,
+            <code class="kbd">,dep</code>, <code class="kbd">,give</code>,
+            <code class="kbd">,inv</code>, <code class="kbd">,me</code>,
+            <code class="kbd">,lb</code>, <code class="kbd">,top</code>.</p>
+        </div>
+
+        <div class="prefix-card reveal">
+          <dl>
+            <div><dt>prefix</dt><dd><code>,</code></dd></div>
+            <div><dt>withdraw</dt><dd><code>,with 250</code></dd></div>
+            <div><dt>everything</dt><dd><code>,with all</code></dd></div>
+            <div><dt>pay someone</dt><dd><code>,give @them 100</code></dd></div>
+            <div><dt>your look</dt><dd><code>,customize</code></dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap narrow">
+      <p class="kicker">faq</p>
+      <h2>questions, answered plainly.</h2>
+
+      <details class="reveal">
+        <summary>is it free?</summary>
+        <p>yes. there is no premium tier and no command that asks for money. the economy
+          coin is fictional and stays in the server.</p>
+      </details>
+
+      <details class="reveal">
+        <summary>what permissions does it need?</summary>
+        <p>the invite asks for the usual set: send messages, embed links, read history,
+          manage messages, kick and ban, timeout members, manage nicknames and roles.
+          you can strip what you don't use afterwards.</p>
+      </details>
+
+      <details class="reveal">
+        <summary>can i change how it looks in my server?</summary>
+        <p>yes — <code class="kbd">,customize</code>, server owner only. avatar, banner
+          and bio are set for your server alone, and reset puts them back.</p>
+      </details>
+
+      <details class="reveal">
+        <summary>where is the shop?</summary>
+        <p>not built yet. <code class="kbd">,shop</code> and <code class="kbd">,buy</code>
+          say so honestly instead of pretending.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap cta-in">
+      <h2>give your server the comma.</h2>
+      <p>one invite, no dashboard, no account to make.</p>
+      <a class="btn btn-solid" href="https://discord.com/oauth2/authorize?client_id=1568375755459534979&scope=bot%20applications.commands&permissions=1099981777990" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        add to discord
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-in">
+    <div class="brand">
+      <img src="assets/pfp.png" alt="" width="26" height="26">
+      <span>slink</span>
+    </div>
+    <nav>
+      <a href="https://github.com/NotAbdullahHD/Clydo" target="_blank" rel="noreferrer">github</a>
+      <a href="https://discord.com/oauth2/authorize?client_id=1568375755459534979&scope=bot%20applications.commands&permissions=1099981777990" target="_blank" rel="noreferrer">invite</a>
+      <a href="#commands">commands</a>
+    </nav>
+    <p>built on discord.js 14.</p>
+  </div>
+</footer>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const links = document.getElementById('nav-links');
+
+  toggle?.addEventListener('click', () => {
+    const open = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  links?.addEventListener('click', (event) => {
+    if (event.target.tagName === 'A') {
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  const wants = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (wants && 'IntersectionObserver' in window) {
+    const watcher = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('in');
+        watcher.unobserve(entry.target);
+      }
+    }, { rootMargin: '0px 0px -12% 0px' });
+
+    document.querySelectorAll('.reveal').forEach((node) => watcher.observe(node));
+  } else {
+    document.querySelectorAll('.reveal').forEach((node) => node.classList.add('in'));
+  }
+</script>
+
+</body>
+</html>
