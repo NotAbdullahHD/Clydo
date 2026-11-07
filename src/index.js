@@ -3,7 +3,6 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  ActivityType,
   Client,
   Collection,
   Events,
@@ -18,6 +17,7 @@ import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
 import { connect } from './lib/db.js';
 import { claim, release } from './lib/single.js';
+import { rotate, watch as watchPresence } from './lib/presence.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { migrateFromJson } from './lib/sobs.js';
 import { panel } from './lib/theme.js';
@@ -117,6 +117,7 @@ client.commands = new Collection();
 /** command name → its folder, so /help can group them into modules. */
 client.categories = new Map();
 watchSnipes(client);
+watchPresence(client);
 routePrefix(client);
 watchSobReactions(client);
 
@@ -181,21 +182,6 @@ async function registerCommands() {
   log(`registered ${body.length} command(s) globally.`);
 }
 
-/** watching — live member total across every server the bot sits in. */
-function refreshPresence(target) {
-  const users = target.guilds.cache.reduce((sum, guild) => sum + (guild.memberCount ?? 0), 0);
-  const servers = target.guilds.cache.size;
-
-  const name = `${users} users! in ${servers} servers`;
-
-  target.user.setPresence({
-    status: 'online',
-    activities: [{ name, type: ActivityType.Watching }],
-  });
-
-  return name;
-}
-
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
   log(mongo ? 'counts: mongo.' : 'counts: data/sobs.json.');
@@ -207,8 +193,7 @@ client.once(Events.ClientReady, async (ready) => {
     log(`prefix commands like ${prefix}sobs are inert until MESSAGE_INTENT=true.`);
   }
 
-  log(`status: watching ${refreshPresence(ready)}.`);
-  setInterval(() => refreshPresence(client), 10 * 60 * 1000);
+  log(`status: ${rotate(client, log)}.`);
 
   try {
     await registerCommands();
@@ -238,9 +223,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await failInteraction(interaction, error, `/${interaction.commandName}`);
   }
 });
-
-client.on(Events.GuildCreate, () => refreshPresence(client));
-client.on(Events.GuildDelete, () => refreshPresence(client));
 
 client.on(Events.Error, (error) => report('gateway', error));
 client.on(Events.Warn, (message) => log('warn —', message));
