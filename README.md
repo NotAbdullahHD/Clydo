@@ -74,6 +74,19 @@ opens the same panel from chat.
 | `,role @user <role>` | toggle a role on a member |
 | `,slowmode <0-21600>` | channel slowmode, 0 turns it off |
 | `,clear <1-100>` | bulk delete, confirmation deletes itself |
+| `,balance [@user]` / `,bal` | wallet, bank and total |
+| `,dep <amount|all>` / `,dep` | wallet into the bank |
+| `,with <amount|all>` / `,with` | bank back into the wallet |
+| `,pay @user <amount>` / `,give` | wallet to wallet |
+| `,daily` | once a day — 500 plus 100 per streak day |
+| `,work` | hourly, a random job and wage |
+| `,beg` | every two minutes, usually little |
+| `,bonus` | 1,000 every six hours |
+| `,inv [@user]` | what you own |
+| `,profile [@user]` | wallet, streak and item count |
+| `,shop` | the catalogue and prices |
+| `,buy <item>` | buy one item |
+| `,lb` | the ten richest wallets |
 | `,family marry @user` | propose — accept or decline buttons |
 | `,family divorce` | end the marriage |
 | `,family adopt @user` | adopt a child |
@@ -169,6 +182,20 @@ src/
       nick.js       nicknames
       role.js       toggle a role
       slowmode.js   channel slowmode
+    economy/
+      balance.js    wallet, bank, total
+      deposit.js    wallet to bank
+      withdraw.js   bank to wallet
+      pay.js        wallet to wallet
+      daily.js      once a day, streak
+      work.js       hourly wage
+      beg.js        small change
+      bonus.js      six-hourly top-up
+      inventory.js  what you own
+      profile.js    wallet and streak
+      shop.js       the catalogue
+      buy.js        buy an item
+      leaderboard.js richest wallets
     utility/
       help.js       reads the live command registry
       ping.js       roundtrip + gateway latency
