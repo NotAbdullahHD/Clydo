@@ -61,6 +61,9 @@ opens the same panel from chat.
 | `,serverinfo` | identity and metrics for the current server |
 | `,userinfo [@user]` | account age and presence |
 | `,snipe` | the last deleted message in this channel |
+| `,avatar [@user]` | their avatar at 1024 |
+| `,banner [@user]` | their profile banner, if they have one |
+| `,afk [reason]` | mark yourself away; your next message clears it |
 | `,purge <1-100>` | clear recent messages |
 | `,ban @user [reason]` | ban, with a DM first |
 | `,kick @user [reason]` | kick, with a DM first |
@@ -173,6 +176,9 @@ src/
       serverinfo.js server parameters
       userinfo.js   account + presence
       snipe.js      last deleted message
+      avatar.js     avatars
+      banner.js     profile banners
+      afk.js        afk notices
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
