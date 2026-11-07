@@ -48,6 +48,8 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `,sobs add 5 @user` | manage server |
 | `,sobs enable` / `disable` | manage server |
 | `,sobs ban` / `unban @user` | owner only |
+| `,flag` | guess the flag — ten seconds a round |
+| `,flag lb` | top 10 flag guessers in this server |
 
 `/crypto` takes shorthands (`btc eth sol`) or any coingecko id, and quotes coinGecko's
 public endpoint — no key required.
@@ -99,7 +101,9 @@ src/
   lib/prefix.js     `,` message routing
   lib/reactions.js  sob emoji → author count
   lib/snipes.js     per-channel deleted message store + watcher
-  lib/sobs.js       json-backed sob counts, scoped per server
+  lib/sobs.js       sob counts, server settings, award ledger
+  lib/flags.js      flag game scores, scoped per server
+  lib/flag-list.js  country codes, names, accepted answers
   commands/
     help.js         reads the live command registry
     ping.js         roundtrip + gateway latency
@@ -109,6 +113,7 @@ src/
     purge.js        message cleanup
     snipe.js        last deleted message
     sobs.js         prefix-only sob counts + leaderboard
+    flag.js         prefix-only flag round + scores
 assets/
   pfp.svg           pfp source
   pfp.png           ready to upload
@@ -134,6 +139,10 @@ so nothing is registered for it as a slash command and `/help` lists it under th
 
 sobs are earned, not given: every 😭 reaction a message collects is one sob for its
 author. each reactor counts once, bots included, so five reactors is five sobs.
+
+every credit is written to an award ledger keyed by `guild:message:reactor`, so
+removing and re-adding one reaction cannot pay twice, and a second bot session
+cannot credit an event it also saw. taking the reaction back returns the sob.
 `,sobs add` is for correcting the number by hand; the count itself comes from reactions.
 
 prefix routing needs the privileged **message content intent** — without it
@@ -143,9 +152,10 @@ why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 ## storage
 
 sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
-database name comes from the uri path (`/clydo`), two collections (`counts`,
-`guilds`) with a unique index on each key. with no uri, everything falls back to
-`data/sobs.json`, so a fresh checkout still runs. an existing json file is moved
+database name comes from the uri path (`/clydo`), four collections (`counts`,
+`guilds`, `awards`, `flags`) with a unique index on each key, plus a 30-day ttl
+that trims the award ledger. with no uri, everything falls back to
+`data/sobs.json` and `data/flags.json`, so a fresh checkout still runs. an existing json file is moved
 into an empty database once and then renamed `.migrated`.
 
 ## snipes and sobs

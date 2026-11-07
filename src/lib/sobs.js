@@ -3,14 +3,22 @@ import path from 'node:path';
 import { db } from './db.js';
 
 /**
- * sob counts and per-server settings.
+ * sob counts, per-server settings, and the award ledger.
  *
  * mongo when MONGO_URI is set, otherwise a small json file, so the bot runs
  * either way. both backends are keyed per server — the old bot's global
  * collection needed membership lookups just to hide other servers' counts.
+ *
+ * every credit is recorded in `awards` as guild + message + reactor. that is the
+ * anti-farm guard: removing and re-adding one reaction cannot pay twice, and a
+ * second bot session that also saw the event cannot credit it again.
  */
 
 const file = path.join(process.cwd(), 'data', 'sobs.json');
+
+/** awards older than this are pruned — long enough that no old reaction pays twice. */
+const awardTtl = 30 * 24 * 60 * 60 * 1000;
+
 let cache = null;
 
 /* ── json fallback ───────────────────────────────────────── */
@@ -26,10 +34,10 @@ async function loadJson() {
     raw = {};
   }
 
-  // older files were a flat "guildId:userId": count map.
-  cache = raw && (raw.counts || raw.guilds)
-    ? { counts: raw.counts ?? {}, guilds: raw.guilds ?? {} }
-    : { counts: raw ?? {}, guilds: {} };
+  // older files were a flat "guildId:userId": count map, and had no ledger.
+  cache = raw && (raw.counts || raw.guilds || raw.awards)
+    ? { counts: raw.counts ?? {}, guilds: raw.guilds ?? {}, awards: raw.awards ?? {} }
+    : { counts: raw ?? {}, guilds: {}, awards: {} };
 
   return cache;
 }
@@ -40,11 +48,22 @@ async function saveJson() {
 }
 
 const key = (guildId, userId) => `${guildId}:${userId}`;
+const awardKey = (guildId, messageId, reactorId) => `${guildId}:${messageId}:${reactorId}`;
+
+/** drop ledger entries past the ttl so the file cannot grow forever. */
+function prune(data) {
+  const horizon = Date.now() - awardTtl;
+
+  for (const [id, meta] of Object.entries(data.awards)) {
+    if ((meta?.at ?? 0) < horizon) delete data.awards[id];
+  }
+}
 
 /* ── mongo ───────────────────────────────────────────────── */
 
 const counts = () => db()?.collection('counts');
 const guilds = () => db()?.collection('guilds');
+const awards = () => db()?.collection('awards');
 
 /* ── api ─────────────────────────────────────────────────── */
 
@@ -88,6 +107,69 @@ export async function addSobs(guildId, userId, amount) {
   await saveJson();
 
   return data.counts[id];
+}
+
+/**
+ * credit one sob for a reaction. returns the author's new total, or null when
+ * this reactor already paid for this message.
+ */
+export async function award(guildId, messageId, reactorId, authorId) {
+  const collection = awards();
+
+  if (collection) {
+    try {
+      await collection.insertOne({ guildId, messageId, reactorId, authorId, at: new Date() });
+    } catch (error) {
+      // duplicate key — this reactor was already counted on this message.
+      if (error?.code === 11000) return null;
+      throw error;
+    }
+
+    return addSobs(guildId, authorId, 1);
+  }
+
+  const data = await loadJson();
+  const id = awardKey(guildId, messageId, reactorId);
+
+  if (data.awards[id]) return null;
+
+  prune(data);
+  data.awards[id] = { authorId, at: Date.now() };
+
+  const slot = key(guildId, authorId);
+  data.counts[slot] = Math.max(0, (data.counts[slot] ?? 0) + 1);
+  await saveJson();
+
+  return data.counts[slot];
+}
+
+/**
+ * take a sob back when the reaction is removed. returns the author's new total,
+ * or null when that reactor had never been counted.
+ */
+export async function revoke(guildId, messageId, reactorId) {
+  const collection = awards();
+
+  if (collection) {
+    const doc = await collection.findOneAndDelete({ guildId, messageId, reactorId });
+    if (!doc) return null;
+
+    return addSobs(guildId, doc.authorId, -1);
+  }
+
+  const data = await loadJson();
+  const id = awardKey(guildId, messageId, reactorId);
+  const credited = data.awards[id];
+
+  if (!credited) return null;
+
+  delete data.awards[id];
+
+  const slot = key(guildId, credited.authorId);
+  data.counts[slot] = Math.max(0, (data.counts[slot] ?? 0) - 1);
+  await saveJson();
+
+  return data.counts[slot];
 }
 
 /** every counted member in a server, highest first. */

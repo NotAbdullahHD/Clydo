@@ -86,11 +86,14 @@ export function since(date, now = Date.now()) {
  * build a clydo embed.
  * titles, field names and footers are lower-cased automatically.
  */
-export function panel({ title, description, fields = [], footer } = {}) {
+export function panel({ title, description, fields = [], footer, image } = {}) {
   const embed = new EmbedBuilder().setColor(palette.panel);
 
   if (title) embed.setTitle(lower(title));
   if (description) embed.setDescription(description);
+
+  /** the only image clydo shows, and only when the image is the content itself. */
+  if (image) embed.setImage(image);
 
   if (fields.length > 0) {
     embed.addFields(
