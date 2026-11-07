@@ -65,6 +65,11 @@ opens the same panel from chat.
 | `,banner [@user]` | their profile banner, if they have one |
 | `,afk [reason]` | mark yourself away; your next message clears it |
 | `,customize [avatar|banner|bio|reset]` | per-server avatar, banner and bio, owner only |
+| `,honeypot setup` | creates the bait channel and pins its warning |
+| `,honeypot punishment <ban|softban|kick|timeout|delete>` | what happens to whoever posts in it |
+| `,honeypot message [text]` | rewrites the warning, `reset` puts the default back |
+| `,honeypot settings` | current trap state |
+| `,honeypot disable` | stops the trap and removes the channel |
 | `,purge <1-100>` | clear recent messages |
 | `,ban @user [reason]` | ban, with a DM first |
 | `,kick @user [reason]` | kick, with a DM first |

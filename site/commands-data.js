@@ -235,6 +235,13 @@ window.COMMANDS = [
   ]
  },
  {
+  "name": "honeypot",
+  "category": "honeypot",
+  "usage": ",honeypot",
+  "about": "the trap for spam bots — setup, punishment, message, disable.",
+  "aliases": []
+ },
+ {
   "name": "ban",
   "category": "moderation",
   "usage": ",ban @user [reason]",

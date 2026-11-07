@@ -12,6 +12,7 @@ import {
   REST,
   Routes,
 } from 'discord.js';
+import { watch as watchHoneypot } from './lib/honeypot.js';
 import { watch as watchAfk } from './lib/afk.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
@@ -118,6 +119,7 @@ client.commands = new Collection();
 /** command name → its folder, so /help can group them into modules. */
 client.categories = new Map();
 watchSnipes(client);
+watchHoneypot(client);
 watchAfk(client, log);
 watchPresence(client);
 routePrefix(client);
