@@ -182,9 +182,18 @@ function exempt(message, member) {
     || false;
 }
 
+/**
+ * message payloads carry no member without the guild members intent, and
+ * `Message#member` only reads the cache — so a fresh account arrives as null.
+ */
+async function activeMember(message) {
+  if (message.member) return message.member;
+
+  return message.guild.members.fetch(message.author.id).catch(() => null);
+}
+
 /** act on a message that landed in the trap. */
-export async function punish(message, record) {
-  const member = message.member;
+export async function punish(message, member, record) {
   const reason = `honeypot: posted in #${message.channel?.name ?? 'the trap'}`;
 
   await message.delete().catch(() => {});
@@ -213,18 +222,28 @@ export function watch(client) {
     // bot accounts are fair game; only our own messages are not.
     if (message.author?.id === client.user.id) return;
 
+    let record = null;
+
     try {
-      const record = await get(message.guild.id);
+      record = await get(message.guild.id);
 
       if (!record.enabled || record.channelId !== message.channelId) return;
-      if (!message.member) return;
-      if (exempt(message, message.member)) return;
 
-      const after = await punish(message, record);
+      const member = await activeMember(message);
+
+      if (!member) {
+        console.log(`[slink] honeypot • could not resolve ${message.author.id}; message left alone.`);
+        return;
+      }
+
+      if (exempt(message, member)) return;
+
+      const after = await punish(message, member, record);
 
       await refresh(message.guild, after);
+      console.log(`[slink] honeypot • ${message.author.username} → ${record.punishment}`);
     } catch (error) {
-      report('honeypot', error);
+      report(`honeypot → ${record?.punishment ?? 'trap'}`, error);
     }
   });
 }

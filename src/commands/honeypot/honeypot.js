@@ -25,7 +25,12 @@ export const name = 'honeypot';
 const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
 const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
 
-const allowed = (message) => message.member?.permissions?.has(PermissionFlagsBits.ManageGuild);
+/** same cache trap as the watcher: a fresh member is not in cache without the intent. */
+async function allowed(message) {
+  const member = message.member ?? (await message.guild.members.fetch(message.author.id).catch(() => null));
+
+  return Boolean(member?.permissions?.has(PermissionFlagsBits.ManageGuild));
+}
 
 const wording = {
   ban: 'banned',
@@ -68,7 +73,7 @@ export async function prefix(message, args) {
 
   const reply = (embed) => message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
 
-  if (!allowed(message)) {
+  if (!(await allowed(message))) {
     await reply(no('you need **manage server** to touch the honeypot.'));
     return;
   }
@@ -86,6 +91,11 @@ export async function prefix(message, args) {
 
     if (current.enabled) {
       await reply(no(`the trap is already running in <#${current.channelId}>. \`${prefixChar}honeypot disable\` takes it down.`));
+      return;
+    }
+
+    if (message.guild.roles.everyone.permissions.has(PermissionFlagsBits.Administrator)) {
+      await reply(no('**@everyone** has administrator here, so every member is exempt and can bypass the channel deny. remove it from @everyone first, otherwise the trap can never fire.'));
       return;
     }
 
