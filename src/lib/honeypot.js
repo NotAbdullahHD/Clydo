@@ -170,16 +170,20 @@ export async function remove(guild, record) {
   return set(guild.id, { enabled: false, channelId: null, noticeId: null });
 }
 
-/** staff, the owner and the bot itself are never bait. */
-function exempt(message, member) {
-  if (message.author.id === message.client.user.id) return true;
-  if (message.author.id === message.guild.ownerId) return true;
-  if (process.env.OWNER_ID?.trim() && message.author.id === process.env.OWNER_ID.trim()) return true;
+/**
+ * staff, the owner and the bot itself are never bait. returns the reason so a
+ * skipped message says why in the log — a trap that quietly ignores people is
+ * worse than no trap at all.
+ */
+function exemption(message, member) {
+  if (message.author.id === message.client.user.id) return 'the bot itself';
+  if (message.author.id === message.guild.ownerId) return 'server owner';
+  if (process.env.OWNER_ID?.trim() && message.author.id === process.env.OWNER_ID.trim()) return 'bot owner';
+  if (member.permissions?.has(PermissionFlagsBits.Administrator)) return 'administrator';
+  if (member.permissions?.has(PermissionFlagsBits.ManageGuild)) return 'manage server';
+  if (member.permissions?.has(PermissionFlagsBits.ManageChannels)) return 'manage channels';
 
-  return member.permissions?.has(PermissionFlagsBits.Administrator)
-    || member.permissions?.has(PermissionFlagsBits.ManageGuild)
-    || member.permissions?.has(PermissionFlagsBits.ManageChannels)
-    || false;
+  return null;
 }
 
 /**
@@ -236,7 +240,12 @@ export function watch(client) {
         return;
       }
 
-      if (exempt(message, member)) return;
+      const why = exemption(message, member);
+
+      if (why) {
+        console.log(`[slink] honeypot • ignored ${message.author.username} (${why})`);
+        return;
+      }
 
       const after = await punish(message, member, record);
 
