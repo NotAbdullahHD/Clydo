@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { board, total } from '../../lib/trivia.js';
+import { palette } from '../../lib/theme.js';
 
 /** trivia leaderboard, ten a page, ← → under it, medals on the top three. */
 
@@ -14,7 +15,7 @@ async function view(guild, index, pages) {
 
   if (!entries.length) {
     return new EmbedBuilder()
-      .setColor(0xFFB6C1)
+      .setColor(palette.panel)
       .setAuthor({ name: `${guild.name} — Trivia Leaderboard`, iconURL: guild.iconURL() ?? undefined })
       .setDescription('No scores yet. Start a game with `,trivia`');
   }
@@ -27,7 +28,7 @@ async function view(guild, index, pages) {
     .join('\n');
 
   return new EmbedBuilder()
-    .setColor(0xFFB6C1)
+    .setColor(palette.panel)
     .setAuthor({ name: `${guild.name} — Trivia Leaderboard`, iconURL: guild.iconURL() ?? undefined })
     .setDescription(list)
     .setFooter({ text: `Page ${index + 1} of ${pages}` });

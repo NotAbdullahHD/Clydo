@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { get, save } from '../../lib/family.js';
+import { palette } from '../../lib/theme.js';
 
 /** `,marry` — the standalone proposal flow, with its own wording. */
 
@@ -21,7 +22,7 @@ export async function prefix(message) {
 
   const embed = new EmbedBuilder()
     .setDescription(`💍 **${target.username}**, **${author.username}** has proposed to you!\nDo you accept?`)
-    .setColor(0xff73fa);
+    .setColor(palette.panel);
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('accept').setLabel('Yes').setStyle(ButtonStyle.Success),
@@ -54,7 +55,7 @@ export async function prefix(message) {
         embeds: [
           new EmbedBuilder()
             .setDescription(`❤️ **${author.username}** and **${target.username}** are now married!`)
-            .setColor(0xff73fa),
+            .setColor(palette.panel),
         ],
         components: [],
       });

@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { get, save } from '../../lib/family.js';
+import { palette } from '../../lib/theme.js';
 
 /** `,adopt` — the standalone version, which requires being married first. */
 
@@ -32,7 +33,7 @@ export async function prefix(message) {
     content: `${target}`,
     embeds: [
       new EmbedBuilder()
-        .setColor(0xFFB6C1)
+        .setColor(palette.panel)
         .setAuthor({ name: `${message.author.username} wants to adopt you`, iconURL: message.author.displayAvatarURL() })
         .setDescription(`${target}, do you accept?`),
     ],

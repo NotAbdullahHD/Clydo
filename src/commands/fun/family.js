@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { get, save } from '../../lib/family.js';
+import { palette } from '../../lib/theme.js';
 
 /**
  * `,family` — marry, divorce, adopt, tree and disown in one command, copied from
@@ -8,7 +9,7 @@ import { get, save } from '../../lib/family.js';
 
 const ok = (desc) => new EmbedBuilder().setColor(0x57F287).setDescription(desc);
 const fail = (desc) => new EmbedBuilder().setColor(0xED4245).setDescription(desc);
-const info = (desc) => new EmbedBuilder().setColor(0xFFB6C1).setDescription(desc);
+const info = (desc) => new EmbedBuilder().setColor(palette.panel).setDescription(desc);
 
 export const name = 'family';
 
@@ -39,7 +40,7 @@ export async function prefix(message, args) {
       content: `${target}`,
       embeds: [
         new EmbedBuilder()
-          .setColor(0xFFB6C1)
+          .setColor(palette.panel)
           .setAuthor({ name: `${message.author.username} sent a proposal`, iconURL: message.author.displayAvatarURL() })
           .setDescription(`${target}, do you accept?`),
       ],
@@ -128,7 +129,7 @@ export async function prefix(message, args) {
       content: `${target}`,
       embeds: [
         new EmbedBuilder()
-          .setColor(0xFFB6C1)
+          .setColor(palette.panel)
           .setAuthor({ name: `${message.author.username} wants to adopt you`, iconURL: message.author.displayAvatarURL() })
           .setDescription(`${target}, do you accept?`),
       ],
@@ -183,7 +184,7 @@ export async function prefix(message, args) {
     await message.reply({
       embeds: [
         new EmbedBuilder()
-          .setColor(0xFFB6C1)
+          .setColor(palette.panel)
           .setAuthor({ name: `${user.username}'s Family`, iconURL: user.displayAvatarURL() })
           .addFields(
             { name: '💍 Partner', value: partner, inline: true },
