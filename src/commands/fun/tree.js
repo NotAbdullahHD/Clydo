@@ -1,5 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 import { get } from '../../lib/family.js';
+import { palette } from '../../lib/theme.js';
 
 /** `,tree` — partner and children for you or a mention. */
 
@@ -15,7 +16,7 @@ export async function prefix(message) {
   const embed = new EmbedBuilder()
     .setTitle('🌳 Family Tree')
     .setDescription(`**Partner:** ${partner}\n**Children:** ${children}`)
-    .setColor(0x2f3136)
+    .setColor(palette.recessed)
     .setFooter({ text: 'Family System' });
 
   await message.reply({ embeds: [embed] });
