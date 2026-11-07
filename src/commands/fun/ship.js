@@ -1,3 +1,5 @@
+import { AttachmentBuilder } from 'discord.js';
+import { loadAvatar, render } from '../../lib/ship-card.js';
 import { block, marks, panel } from '../../lib/theme.js';
 
 /** `,ship <@user> [@user]` — a compatibility score for two people. */
@@ -32,13 +34,6 @@ const score = (first, second) => {
   }
 
   return Math.abs(hash) % 101;
-};
-
-const bar = (percent) => {
-  const cells = 12;
-  const filled = Math.round((percent / 100) * cells);
-
-  return `${'━'.repeat(filled)}${'─'.repeat(cells - filled)}`;
 };
 
 /** mentions first, then bare ids, so `,ship @a @b` and `,ship 123 456` both work. */
@@ -82,16 +77,19 @@ export async function prefix(message, args) {
   const second = found[1] ?? message.author;
   const percent = score(first.id, second.id);
 
-  const embed = panel({
-    title: 'ship',
-    description: block(`**${percent}%**`, `\`${bar(percent)}\``),
-  })
-    .setAuthor({
-      name: `${first.username} ♥ ${second.username}`,
-      iconURL: first.displayAvatarURL({ size: 128, extension: 'png' }),
-    })
-    .setThumbnail(second.displayAvatarURL({ size: 256, extension: 'png' }))
-    .setFooter({ text: caption(percent) });
+  const images = await Promise.all(
+    [first, second].map((user) => loadAvatar(user.displayAvatarURL({ size: 256, extension: 'png' }))),
+  );
 
-  await message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
+  const png = await render({
+    percent,
+    caption: caption(percent),
+    names: [first.username, second.username],
+    images,
+  });
+
+  await message.reply({
+    files: [new AttachmentBuilder(png, { name: `ship-${percent}.png` })],
+    allowedMentions: { parse: [] },
+  });
 }
