@@ -1,28 +1,23 @@
-import { currency, money, top } from '../../lib/economy.js';
-import { block, panel } from '../../lib/theme.js';
+import { card, coin, short, top } from '../../lib/economy.js';
 
-/** `,lb` — the ten richest wallets, one line each. */
+/** `,lb` — the ten richest, medal for the top three. */
 
 export const name = 'leaderboard';
 export const names = ['lb', 'rich', 'top'];
 
 const shown = 10;
+const medals = ['🥇', '🥈', '🥉'];
 
 export async function prefix(message) {
   const ranked = await top(shown);
 
-  const description = ranked.length
-    ? block(...ranked.map((row, index) => {
-      const name = message.guild.members.cache.get(row.userId)?.user.username
-        ?? row.name
-        ?? `<@${row.userId}>`;
-
-      return `**${index + 1}.** ${name} — ${money(row.total)} ${currency}`;
-    }))
-    : 'nobody has any coins yet.';
+  const lines = ranked.map((row, index) => {
+    const mark = medals[index] ?? `${index + 1}.`;
+    return `${mark} <@${row.userId}> — ${coin} ${short(row.total)}`;
+  });
 
   await message.reply({
-    embeds: [panel({ title: 'leaderboard', description })],
+    embeds: [card('🏆 economy leaderboard', lines.length ? lines.join('\n') : 'nobody has any coins yet.')],
     allowedMentions: { parse: [] },
   });
 }

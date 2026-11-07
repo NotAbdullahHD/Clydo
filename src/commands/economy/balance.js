@@ -1,7 +1,6 @@
-import { currency, get, money, total } from '../../lib/economy.js';
-import { block, datapoint, panel } from '../../lib/theme.js';
+import { bank, card, coin, get, short } from '../../lib/economy.js';
 
-/** `,balance [@user]` — wallet, bank, total. three lines, nothing else. */
+/** `,balance [@user]` — wallet and bank on one line, like greed's. */
 
 export const name = 'balance';
 export const names = ['bal'];
@@ -11,14 +10,7 @@ export async function prefix(message) {
   const record = await get(target.id);
 
   await message.reply({
-    embeds: [panel({
-      title: target.id === message.author.id ? 'balance' : `${target.username}'s balance`,
-      description: block(
-        datapoint('wallet', money(record.wallet)),
-        datapoint('bank', money(record.bank)),
-        datapoint('total', `**${money(total(record))}** ${currency}`),
-      ),
-    })],
+    embeds: [card(`${target.username}'s balance`, `${coin} ${short(record.wallet)} • ${bank} ${short(record.bank)}`)],
     allowedMentions: { parse: [] },
   });
 }

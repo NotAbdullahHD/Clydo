@@ -1,5 +1,4 @@
-import { amount, currency, get, money, update } from '../../lib/economy.js';
-import { panel } from '../../lib/theme.js';
+import { amount, bad, coin, get, good, short, update } from '../../lib/economy.js';
 
 /** `,dep [amount|all]` — wallet into the bank. */
 
@@ -7,28 +6,21 @@ export const name = 'deposit';
 export const names = ['dep'];
 
 export async function prefix(message, args) {
+  const tag = `<@${message.author.id}>`;
   const record = await get(message.author.id);
   const value = amount(args[0], record.wallet);
 
+  const reply = (embed) => message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
+
   if (!value) {
-    await message.reply({
-      embeds: [panel({
-        title: 'deposit',
-        description: args[0]?.toLowerCase() === 'all' && record.wallet === 0
-          ? 'your wallet is empty.'
-          : 'usage — `,dep <amount|all>`',
-      })],
-    });
+    await reply(bad(args[0]?.toLowerCase() === 'all' && record.wallet === 0
+      ? `${tag}: your wallet is empty.`
+      : `${tag}: usage — \`,dep <amount|all>\``));
     return;
   }
 
   if (value > record.wallet) {
-    await message.reply({
-      embeds: [panel({
-        title: 'deposit',
-        description: `you only have **${money(record.wallet)}** ${currency} on you.`,
-      })],
-    });
+    await reply(bad(`${tag}: you only have ${coin} ${short(record.wallet)} on you.`));
     return;
   }
 
@@ -38,10 +30,5 @@ export async function prefix(message, args) {
     return row;
   }, message.author.username);
 
-  await message.reply({
-    embeds: [panel({
-      title: 'deposit',
-      description: `deposited **${money(value)}** ${currency} — bank **${money(record.bank + value)}**`,
-    })],
-  });
+  await reply(good(`${tag}: deposited ${coin} ${short(value)} into your bank.`));
 }

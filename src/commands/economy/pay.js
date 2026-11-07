@@ -1,5 +1,4 @@
-import { amount, currency, get, money, update } from '../../lib/economy.js';
-import { panel } from '../../lib/theme.js';
+import { amount, bad, coin, get, good, short, update } from '../../lib/economy.js';
 
 /** `,pay @user <amount>` — wallet to wallet. */
 
@@ -7,37 +6,37 @@ export const name = 'pay';
 export const names = ['give'];
 
 export async function prefix(message, args) {
+  const tag = `<@${message.author.id}>`;
   const target = message.mentions.users.first();
   const record = await get(message.author.id);
   const value = amount(args.find((arg) => /^[\d,_]+$/.test(arg) || arg.toLowerCase() === 'all'), record.wallet);
 
-  const say = (description) => message.reply({
-    embeds: [panel({ title: 'pay', description })],
-    allowedMentions: { parse: [] },
-  });
+  const reply = (embed) => message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
 
   if (!target) {
-    await say('usage — `,pay @user <amount>`');
+    await reply(bad(`${tag}: usage — \`,pay @user <amount>\``));
     return;
   }
 
   if (target.id === message.author.id) {
-    await say('paying yourself does nothing.');
+    await reply(bad(`${tag}: paying yourself does nothing.`));
     return;
   }
 
   if (target.bot) {
-    await say('bots have no use for coins.');
+    await reply(bad(`${tag}: bots have no use for coins.`));
     return;
   }
 
   if (!value) {
-    await say(record.wallet === 0 ? 'your wallet is empty.' : 'usage — `,pay @user <amount>`');
+    await reply(bad(record.wallet === 0
+      ? `${tag}: your wallet is empty.`
+      : `${tag}: usage — \`,pay @user <amount>\``));
     return;
   }
 
   if (value > record.wallet) {
-    await say(`you only have **${money(record.wallet)}** ${currency} on you.`);
+    await reply(bad(`${tag}: you only have ${coin} ${short(record.wallet)} on you.`));
     return;
   }
 
@@ -51,5 +50,5 @@ export async function prefix(message, args) {
     return row;
   }, target.username);
 
-  await say(`paid **${money(value)}** ${currency} to **${target.username}**`);
+  await reply(good(`${tag}: paid ${coin} ${short(value)} to <@${target.id}>.`));
 }

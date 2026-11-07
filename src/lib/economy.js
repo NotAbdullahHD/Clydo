@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { EmbedBuilder } from 'discord.js';
 import { db } from './db.js';
+import { palette } from './theme.js';
 
 /**
  * economy — one wallet per user, shared across every server.
@@ -11,6 +13,33 @@ import { db } from './db.js';
  */
 
 export const currency = 'coins';
+
+/** the two glyphs the economy uses, nothing more. */
+export const coin = '🟡';
+export const bank = '🏦';
+
+/** 191900 → 191.9K, 1500000 → 1.5M — never a wall of digits. */
+export function short(value) {
+  const n = Math.round(Number(value) || 0);
+  const trim = (number) => number.toFixed(1).replace(/\.0$/, '');
+
+  if (n >= 1_000_000_000) return `${trim(n / 1_000_000_000)}B`;
+  if (n >= 1_000_000) return `${trim(n / 1_000_000)}M`;
+  if (n >= 1_000) return `${trim(n / 1_000)}K`;
+  return String(n);
+}
+
+/** ✅ one line, green. */
+export const good = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
+
+/** ❌ one line, red. */
+export const bad = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
+
+/** a plain card on discord's own grey. */
+export const card = (title, description) => new EmbedBuilder()
+  .setColor(palette.panel)
+  .setTitle(title)
+  .setDescription(description);
 
 const file = path.join(process.cwd(), 'data', 'economy.json');
 

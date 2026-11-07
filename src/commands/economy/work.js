@@ -1,7 +1,6 @@
-import { currency, left, money, update } from '../../lib/economy.js';
-import { panel } from '../../lib/theme.js';
+import { bad, coin, good, left, short, update } from '../../lib/economy.js';
 
-/** `,work` — once an hour, a random job and a random wage. */
+/** `,work` — once an hour, 25 to 60. */
 
 export const name = 'work';
 
@@ -18,6 +17,7 @@ const jobs = [
 ];
 
 export async function prefix(message) {
+  const tag = `<@${message.author.id}>`;
   const now = Date.now();
   let earned = 0;
   let job = null;
@@ -28,7 +28,7 @@ export async function prefix(message) {
     if (waited > 0) return row;
 
     job = jobs[Math.floor(Math.random() * jobs.length)];
-    earned = 120 + Math.floor(Math.random() * 201);
+    earned = 25 + Math.floor(Math.random() * 36);
 
     row.wallet += earned;
     row.work.at = now;
@@ -37,11 +37,11 @@ export async function prefix(message) {
   }, message.author.username);
 
   await message.reply({
-    embeds: [panel({
-      title: 'work',
-      description: waited > 0
-        ? `you are still on shift — back in **${left(waited)}**`
-        : `${job} — earned **${money(earned)}** ${currency}`,
-    })],
+    embeds: [
+      waited > 0
+        ? bad(`${tag}: still on shift — ${left(waited)} left.`)
+        : good(`${tag}: worked as a ${job} and earned ${coin} ${short(earned)}.`),
+    ],
+    allowedMentions: { parse: [] },
   });
 }

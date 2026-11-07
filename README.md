@@ -78,14 +78,14 @@ opens the same panel from chat.
 | `,dep <amount|all>` / `,dep` | wallet into the bank |
 | `,with <amount|all>` / `,with` | bank back into the wallet |
 | `,pay @user <amount>` / `,give` | wallet to wallet |
-| `,daily` | once a day — 500 plus 100 per streak day |
-| `,work` | hourly, a random job and wage |
-| `,beg` | every two minutes, usually little |
-| `,bonus` | 1,000 every six hours |
+| `,daily` | once a day — 200 plus 25 per streak day, capped at 350 |
+| `,work` | hourly, a random job and 25 to 60 |
+| `,beg` | every five minutes, and usually nothing |
+| `,bonus` | 150 every twelve hours |
 | `,inv [@user]` | what you own |
 | `,profile [@user]` | wallet, streak and item count |
-| `,shop` | the catalogue and prices |
-| `,buy <item>` | buy one item |
+| `,shop` | parked — items have not been created yet |
+| `,buy <item>` | parked with the shop |
 | `,lb` | the ten richest wallets |
 | `,family marry @user` | propose — accept or decline buttons |
 | `,family divorce` | end the marriage |

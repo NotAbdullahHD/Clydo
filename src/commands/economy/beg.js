@@ -1,23 +1,17 @@
-import { currency, left, money, update } from '../../lib/economy.js';
-import { panel } from '../../lib/theme.js';
+import { bad, coin, good, left, short, update } from '../../lib/economy.js';
 
-/** `,beg` — every two minutes, usually very little. */
+/** `,beg` — every five minutes, and usually nothing. */
 
 export const name = 'beg';
 
-const every = 2 * 60 * 1000;
-
-const luck = [
-  'someone dropped **{n}** coins.',
-  'a stranger handed you **{n}** coins.',
-  'you found **{n}** coins in the sofa.',
-  'a passing crow left **{n}** coins. somehow.',
-];
+const every = 5 * 60 * 1000;
 
 export async function prefix(message) {
+  const tag = `<@${message.author.id}>`;
   const now = Date.now();
-  let line = null;
+  let earned = 0;
   let waited = 0;
+  let lucky = false;
 
   await update(message.author.id, (row) => {
     waited = row.beg.at + every - now;
@@ -25,22 +19,20 @@ export async function prefix(message) {
 
     row.beg.at = now;
 
-    if (Math.random() < 0.4) {
-      line = 'nobody looked.';
-      return row;
-    }
+    if (Math.random() >= 0.5) return row;
 
-    const earned = 10 + Math.floor(Math.random() * 51);
+    lucky = true;
+    earned = 5 + Math.floor(Math.random() * 11);
     row.wallet += earned;
-    line = luck[Math.floor(Math.random() * luck.length)].replace('{n}', money(earned));
 
     return row;
   }, message.author.username);
 
-  await message.reply({
-    embeds: [panel({
-      title: 'beg',
-      description: waited > 0 ? `give it a rest — back in **${left(waited)}**` : line,
-    })],
-  });
+  let text;
+
+  if (waited > 0) text = bad(`${tag}: give it a rest — ${left(waited)}.`);
+  else if (lucky) text = good(`${tag}: someone handed you ${coin} ${short(earned)}.`);
+  else text = bad(`${tag}: nobody looked.`);
+
+  await message.reply({ embeds: [text], allowedMentions: { parse: [] } });
 }

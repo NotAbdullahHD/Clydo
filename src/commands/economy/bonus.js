@@ -1,14 +1,14 @@
-import { currency, left, money, update } from '../../lib/economy.js';
-import { panel } from '../../lib/theme.js';
+import { bad, coin, good, left, short, update } from '../../lib/economy.js';
 
-/** `,bonus` — a flat top-up every six hours. */
+/** `,bonus` — 150 every twelve hours. */
 
 export const name = 'bonus';
 
-const every = 6 * 60 * 60 * 1000;
-const reward = 1_000;
+const every = 12 * 60 * 60 * 1000;
+const reward = 150;
 
 export async function prefix(message) {
+  const tag = `<@${message.author.id}>`;
   const now = Date.now();
   let waited = 0;
   let claimed = false;
@@ -25,11 +25,11 @@ export async function prefix(message) {
   }, message.author.username);
 
   await message.reply({
-    embeds: [panel({
-      title: 'bonus',
-      description: claimed
-        ? `claimed **${money(reward)}** ${currency}`
-        : `already claimed — next one in **${left(waited)}**`,
-    })],
+    embeds: [
+      claimed
+        ? good(`${tag}: you claimed your bonus of ${coin} ${short(reward)}!`)
+        : bad(`${tag}: next bonus in ${left(waited)}.`),
+    ],
+    allowedMentions: { parse: [] },
   });
 }

@@ -14,14 +14,19 @@ import { EmbedBuilder } from 'discord.js';
  */
 
 /**
- * the signature accent: muted lavender. against discord's own dark grey it reads
- * as a tint rather than a colour of its own, which is the whole point.
+ * discord dark grey is the default surface — embeds blend into the client
+ * instead of shouting. lavender is the signature accent and stays rare; status
+ * colours are only for status.
  */
 export const palette = Object.freeze({
-  panel: 0x8d7bb4,
-  recessed: 0x2b2d31,
+  panel: 0x2b2d31,
+  recessed: 0x1e1f22,
   void: 0x000000,
   ink: 0xffffff,
+  accent: 0x8d7bb4,
+  good: 0x57f287,
+  bad: 0xed4245,
+  warn: 0xfee75c,
 });
 
 /** type marks — the only decorative characters slink is allowed to use. */
