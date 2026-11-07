@@ -1136,28 +1136,46 @@ h2 {
   animation-delay: -2s;
 }
 
-.ring3d { top: 56%; left: 0; }
+.ring3d { top: 58%; left: 4%; }
 
 .ring3d .shape {
-  width: 112px;
-  height: 112px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
-  border: 9px solid rgba(141, 123, 180, 0.34);
-  box-shadow: inset 0 0 26px rgba(141, 123, 180, 0.32), 0 0 44px -14px rgba(141, 123, 180, 0.55);
-  transform: rotateX(62deg) rotateZ(-18deg);
+  border: 10px solid rgba(161, 143, 199, 0.55);
+  box-shadow:
+    inset 0 0 22px rgba(141, 123, 180, 0.45),
+    0 0 40px -8px rgba(141, 123, 180, 0.6),
+    0 18px 30px -18px rgba(0, 0, 0, 0.9);
+  transform: rotateX(64deg) rotateZ(-18deg);
   animation-delay: -5s;
 }
 
-.comma3d { bottom: 9%; right: 15%; }
+/* a physical keycap for the comma, not a floating glyph */
+.comma3d { bottom: 8%; right: 13%; }
 
 .comma3d .shape {
-  color: #cbb8ea;
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+  padding-bottom: 6px;
+  border: 1px solid rgba(214, 201, 238, 0.36);
+  border-radius: 18px;
+  background:
+    linear-gradient(160deg, #cdbde9 0%, #9b87c6 46%, #6d5a95 100%);
+  color: #241d33;
   font-family: "JetBrains Mono", monospace;
-  font-size: 104px;
+  font-size: 58px;
   font-weight: 500;
-  line-height: 0.8;
-  text-shadow: 0 1px 0 #6f5a96, 0 20px 36px rgba(141, 123, 180, 0.42);
-  transform: rotate(-9deg);
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 26px 34px -18px rgba(0, 0, 0, 0.95),
+    0 10px 0 -2px #4e3f6e,
+    inset 0 2px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -14px 22px rgba(35, 26, 54, 0.5);
+  transform: rotateX(16deg) rotateY(-18deg) rotateZ(-6deg);
   animation-delay: -7s;
 }
 
@@ -1189,9 +1207,9 @@ h2 {
 .cube i {
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(183, 166, 217, 0.4);
-  background: linear-gradient(160deg, rgba(141, 123, 180, 0.24), rgba(141, 123, 180, 0.03));
-  box-shadow: inset 0 0 18px rgba(141, 123, 180, 0.22);
+  border: 1px solid rgba(199, 184, 233, 0.55);
+  background: linear-gradient(155deg, rgba(141, 123, 180, 0.34), rgba(141, 123, 180, 0.05));
+  box-shadow: inset 0 0 18px rgba(141, 123, 180, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .cube i:nth-child(1) { transform: translateZ(28px); }
@@ -1202,7 +1220,8 @@ h2 {
 .cube i:nth-child(6) { transform: rotateX(-90deg) translateZ(28px); }
 
 @keyframes spin {
-  to { transform: rotateX(360deg) rotateY(360deg); }
+  from { transform: rotateX(-18deg) rotateY(22deg); }
+  to { transform: rotateX(342deg) rotateY(382deg); }
 }
 
 .spark .shape {
