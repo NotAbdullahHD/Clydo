@@ -33,15 +33,13 @@ description — a `›` heading with `•` data lines under it — and a short f
 
 | command | does |
 | --- | --- |
-| `/help` | reads the live registry, so it never needs editing |
+| `/help` | the module panel — `/help <command>` for one command |
 | `/ping` | roundtrip + gateway latency |
-| `/crypto [assets]` | spot price and 24h change, up to 5 assets, 30s cache |
-| `/serverinfo` | identity and metrics for the current server |
-| `/userinfo [user]` | account age and presence |
-| `/purge <amount>` | clear 1–100 recent messages, manage-messages only |
-| `/snipe` | the last deleted message in this channel |
 
-`,` is the prefix. `/help` lists prefixed commands too.
+two slash commands, nothing else. everything below is prefix only, and `,help`
+opens the same panel from chat.
+
+`,` is the prefix.
 
 | prefixed | does |
 | --- | --- |
@@ -58,6 +56,20 @@ description — a `›` heading with `•` data lines under it — and a short f
 | `,fm` / `,fm set <user>` | last.fm now playing |
 | `,google <query>` | google search, ten results per page |
 | `,image <query>` | google image search |
+| `,crypto [assets]` | spot price and 24h change, up to 5 assets |
+| `,serverinfo` | identity and metrics for the current server |
+| `,userinfo [@user]` | account age and presence |
+| `,snipe` | the last deleted message in this channel |
+| `,purge <1-100>` | clear recent messages |
+| `,ban @user [reason]` | ban, with a DM first |
+| `,kick @user [reason]` | kick, with a DM first |
+| `,unban <userId> [reason]` | unban by id |
+| `,timeout @user <10m\|2h\|1d> [reason]` | 5 seconds to 28 days |
+| `,warn @user [reason]` | warn, with a DM |
+| `,nick @user <name>` | change a nickname, omit to reset |
+| `,role @user <role>` | toggle a role on a member |
+| `,slowmode <0-21600>` | channel slowmode, 0 turns it off |
+| `,clear <1-100>` | bulk delete, confirmation deletes itself |
 | `,family marry @user` | propose — accept or decline buttons |
 | `,family divorce` | end the marriage |
 | `,family adopt @user` | adopt a child |
@@ -144,6 +156,15 @@ src/
       tree.js       partner and children
     moderation/
       purge.js      message cleanup
+      clear.js      bulk delete
+      ban.js        ban with a DM
+      kick.js       kick with a DM
+      unban.js      unban by id
+      timeout.js    timed out members
+      warn.js       warn with a DM
+      nick.js       nicknames
+      role.js       toggle a role
+      slowmode.js   channel slowmode
     utility/
       help.js       reads the live command registry
       ping.js       roundtrip + gateway latency

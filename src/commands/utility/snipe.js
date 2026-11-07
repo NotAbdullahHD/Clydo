@@ -1,21 +1,20 @@
-import { GatewayIntentBits, SlashCommandBuilder } from 'discord.js';
+import { GatewayIntentBits } from 'discord.js';
 import { peek } from '../../lib/snipes.js';
 import { panel, section, sections, since } from '../../lib/theme.js';
+
+/** `,snipe` — the last deleted message in this channel. */
+
+export const name = 'snipe';
 
 /** resolved from the portal at boot, so ask the client rather than the env. */
 const contentOn = (client) =>
   client?.options?.intents?.has?.(GatewayIntentBits.MessageContent) ?? false;
 
-export const data = new SlashCommandBuilder()
-  .setName('snipe')
-  .setDescription('the last deleted message in this channel')
-  .setDMPermission(false);
-
-export async function execute(interaction) {
-  const record = peek(interaction.channelId);
+export async function prefix(message) {
+  const record = peek(message.channelId);
 
   if (!record) {
-    await interaction.reply({
+    await message.reply({
       embeds: [
         panel({
           title: 'snipe',
@@ -34,11 +33,11 @@ export async function execute(interaction) {
   ];
 
   if (record.attachment) rows.push(['attachment', record.attachment]);
-  if (!contentOn(interaction.client)) {
+  if (!contentOn(message.client)) {
     rows.push(['note', 'message content intent is off — text may be missing']);
   }
 
-  await interaction.reply({
+  await message.reply({
     embeds: [
       panel({
         title: 'snipe',

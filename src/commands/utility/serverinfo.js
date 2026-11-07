@@ -1,15 +1,13 @@
-import { SlashCommandBuilder } from 'discord.js';
 import { panel, section, sections, since } from '../../lib/theme.js';
 
-export const data = new SlashCommandBuilder()
-  .setName('serverinfo')
-  .setDescription('parameters for this server')
-  .setDMPermission(false);
+/** `,serverinfo` — parameters for the server the message came from. */
 
-export async function execute(interaction) {
-  const { guild } = interaction;
+export const name = 'serverinfo';
 
-  await interaction.reply({
+export async function prefix(message) {
+  const { guild } = message;
+
+  await message.reply({
     embeds: [
       panel({
         title: 'serverinfo',

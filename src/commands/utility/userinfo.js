@@ -1,5 +1,9 @@
-import { ActivityType, SlashCommandBuilder } from 'discord.js';
+import { ActivityType } from 'discord.js';
 import { panel, section, sections, since } from '../../lib/theme.js';
+
+/** `,userinfo [@user]` — account and presence data, defaults to you. */
+
+export const name = 'userinfo';
 
 /** discord's raw status keys read badly in a text block. */
 const statuses = Object.freeze({
@@ -19,16 +23,9 @@ const activityOf = (presence) => {
   return entry.name ?? 'none';
 };
 
-export const data = new SlashCommandBuilder()
-  .setName('userinfo')
-  .setDescription('account and presence data for a user')
-  .addUserOption((option) =>
-    option.setName('user').setDescription('defaults to you').setRequired(false),
-  );
-
-export async function execute(interaction) {
-  const user = interaction.options.getUser('user') ?? interaction.user;
-  const member = interaction.options.getMember('user') ?? interaction.member;
+export async function prefix(message) {
+  const user = message.mentions.users.first() ?? message.author;
+  const member = message.mentions.members.first() ?? message.member;
 
   const presence = member?.presence ?? null;
   const rows = [
@@ -37,7 +34,7 @@ export async function execute(interaction) {
     ['created', since(user.createdTimestamp)],
   ];
 
-  await interaction.reply({
+  await message.reply({
     embeds: [
       panel({
         title: 'userinfo',

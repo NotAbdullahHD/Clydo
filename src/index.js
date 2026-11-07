@@ -114,6 +114,8 @@ const client = new Client({
   partials: [Partials.Message, Partials.Reaction, Partials.Channel],
 });
 client.commands = new Collection();
+/** command name → its folder, so /help can group them into modules. */
+client.categories = new Map();
 watchSnipes(client);
 routePrefix(client);
 watchSobReactions(client);
@@ -150,6 +152,10 @@ async function loadCommands() {
       }
 
       client.commands.set(name, module);
+      client.categories.set(
+        name,
+        path.relative(commandDir, path.dirname(file)).split(path.sep)[0] || 'core',
+      );
     } catch (error) {
       report(`loading ${path.basename(file)}`, error);
     }

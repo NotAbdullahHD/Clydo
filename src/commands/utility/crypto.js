@@ -1,7 +1,7 @@
-import { SlashCommandBuilder } from 'discord.js';
 import { panel, section, sections } from '../../lib/theme.js';
 
 /** shorthand → coingecko id. raw coingecko ids work too. */
+
 const symbols = Object.freeze({
   btc: 'bitcoin',
   eth: 'ethereum',
@@ -31,6 +31,8 @@ const symbols = Object.freeze({
   usdt: 'tether',
   usdc: 'usd-coin',
 });
+
+export const name = 'crypto';
 
 const cacheMs = 30_000;
 let cache = { key: '', at: 0, data: null };
@@ -68,20 +70,8 @@ async function quote(ids) {
   return data;
 }
 
-export const data = new SlashCommandBuilder()
-  .setName('crypto')
-  .setDescription('spot price and 24h change for a few assets')
-  .addStringOption((option) =>
-    option
-      .setName('assets')
-      .setDescription('space or comma separated — btc eth sol')
-      .setRequired(false),
-  );
-
-export async function execute(interaction) {
-  await interaction.deferReply();
-
-  const requested = (interaction.options.getString('assets') ?? 'btc eth')
+export async function prefix(message, args) {
+  const requested = (args.join(' ') || 'btc eth')
     .toLowerCase()
     .split(/[\s,]+/)
     .filter(Boolean);
@@ -108,14 +98,12 @@ export async function execute(interaction) {
     groups.push(section({ heading: symbol, rows }));
   });
 
-  const quoted = groups.length;
-
   if (missing.length) {
     groups.push(section({ heading: 'not tracked', rows: missing.map((symbol) => [symbol, 'no quote']) }));
   }
 
-  if (quoted === 0) {
-    await interaction.editReply({
+  if (groups.length === 0 || wanted.length === missing.length) {
+    await message.reply({
       embeds: [
         panel({
           title: 'crypto',
@@ -132,7 +120,7 @@ export async function execute(interaction) {
 
   const stamp = new Date().toISOString().slice(11, 16);
 
-  await interaction.editReply({
+  await message.reply({
     embeds: [
       panel({
         title: 'crypto',
