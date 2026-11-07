@@ -204,8 +204,8 @@ window.COMMANDS = [
  {
   "name": "ship",
   "category": "fun",
-  "usage": ",ship",
-  "about": "",
+  "usage": ",ship <@user> [@user]",
+  "about": "a compatibility score for two people.",
   "aliases": []
  },
  {

@@ -1,12 +1,10 @@
 import { block, marks, panel } from '../../lib/theme.js';
 
-/**
- * `,ship <@user> [@user]` — a compatibility score for two people.
- *
- * the number is a hash of the two ids in sorted order, so the same pair always
- * lands on the same score and mentioning them the other way round changes
- * nothing. a joke that rerolls every time is just noise.
- */
+/** `,ship <@user> [@user]` — a compatibility score for two people. */
+
+// the number is a hash of the two ids in sorted order, so the same pair always
+// lands on the same score and mentioning them the other way round changes
+// nothing. a joke that rerolls every time is just noise.
 
 export const name = 'ship';
 
