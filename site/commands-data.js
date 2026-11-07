@@ -118,6 +118,27 @@ window.COMMANDS = [
   "aliases": []
  },
  {
+  "name": "blush",
+  "category": "fun",
+  "usage": ",blush",
+  "about": "caught off guard.",
+  "aliases": []
+ },
+ {
+  "name": "cry",
+  "category": "fun",
+  "usage": ",cry",
+  "about": "a good cry.",
+  "aliases": []
+ },
+ {
+  "name": "dance",
+  "category": "fun",
+  "usage": ",dance",
+  "about": "a small celebration.",
+  "aliases": []
+ },
+ {
   "name": "disown",
   "category": "fun",
   "usage": ",disown",
@@ -185,6 +206,20 @@ window.COMMANDS = [
   ]
  },
  {
+  "name": "highfive",
+  "category": "fun",
+  "usage": ",highfive [@user]",
+  "about": "a high five.",
+  "aliases": []
+ },
+ {
+  "name": "hug",
+  "category": "fun",
+  "usage": ",hug [@user]",
+  "about": "hug someone, or slink if you name nobody.",
+  "aliases": []
+ },
+ {
   "name": "image",
   "category": "fun",
   "usage": ",image",
@@ -195,6 +230,13 @@ window.COMMANDS = [
   ]
  },
  {
+  "name": "kiss",
+  "category": "fun",
+  "usage": ",kiss [@user]",
+  "about": "kiss someone, or slink if you name nobody.",
+  "aliases": []
+ },
+ {
   "name": "marry",
   "category": "fun",
   "usage": ",marry",
@@ -202,10 +244,31 @@ window.COMMANDS = [
   "aliases": []
  },
  {
+  "name": "pat",
+  "category": "fun",
+  "usage": ",pat [@user]",
+  "about": "headpats.",
+  "aliases": []
+ },
+ {
+  "name": "pout",
+  "category": "fun",
+  "usage": ",pout",
+  "about": "annoyed, arms crossed.",
+  "aliases": []
+ },
+ {
   "name": "ship",
   "category": "fun",
   "usage": ",ship <@user> [@user]",
   "about": "a compatibility score for two people.",
+  "aliases": []
+ },
+ {
+  "name": "slap",
+  "category": "fun",
+  "usage": ",slap [@user]",
+  "about": "a comedic slap.",
   "aliases": []
  },
  {

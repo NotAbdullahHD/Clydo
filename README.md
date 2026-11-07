@@ -53,6 +53,15 @@ opens the same panel from chat.
 | `,flaghint` | hint for the round running in this channel |
 | `,flaglb` | flag leaderboard, ten per page |
 | `,ship <@user> [@user]` | compatibility score for two people |
+| `,cry` | a good cry |
+| `,pout` | annoyed, arms crossed |
+| `,blush` | caught off guard |
+| `,dance` | a small celebration |
+| `,hug [@user]` | hug someone, or slink |
+| `,slap [@user]` | a comedic slap |
+| `,pat [@user]` | headpats |
+| `,kiss [@user]` | kiss someone, or slink |
+| `,highfive [@user]` | a high five |
 | `,trivia [category]` | trivia round — fifteen seconds |
 | `,trivialb` | trivia leaderboard, ten per page |
 | `,fm` / `,fm set <user>` | last.fm now playing |
