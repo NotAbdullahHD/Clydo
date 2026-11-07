@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>faq — slink</title>
+<meta name="description" content="is it free, what permissions it needs, how per-server looks work, and why invites are closed.">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/pfp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="dock">
+  <div class="dock-in">
+    <a class="mark" href="index.html" aria-label="slink home">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+
+    <nav>
+      <a href="index.html">home</a>
+      <a href="commands.html">commands</a>
+      <a href="embeds.html">embeds</a>
+      <a href="faq.html" aria-current="page">faq</a>
+    </nav>
+
+    <span class="soon" title="invites open once the rough edges are gone"><i></i>invite soon</span>
+  </div>
+</div>
+
+<main class="page">
+  <div class="wrap">
+
+    <div class="page-head">
+      <p class="eyebrow rise"><span class="dot"></span> the short answers</p>
+      <h1 class="rise" style="--d: 50ms">faq</h1>
+    </div>
+
+    <div class="faq">
+      <details open>
+        <summary>is it free?</summary>
+        <p>yes. there is no premium tier and no command asks for money. the coin in the
+          economy is fictional and never leaves the server's own data.</p>
+      </details>
+
+      <details>
+        <summary>can i invite it right now?</summary>
+        <p>not yet. slink is in private beta while the remaining commands get ported and the
+          rough edges sanded down — which is why there is no invite button anywhere on these
+          pages. the commands list is real in the meantime.</p>
+      </details>
+
+      <details>
+        <summary>is the source available?</summary>
+        <p>no. slink isn't open source, so there's no repository link to follow. questions
+          about behaviour go to whoever runs it in your server.</p>
+      </details>
+
+      <details>
+        <summary>what permissions does it need?</summary>
+        <p>send messages, embed links, read history and add reactions for the basics.
+          moderation commands need their own permission — <code class="kbd">,ban</code> needs
+          ban members, <code class="kbd">,timeout</code> needs moderate members — and are
+          refused with a plain reason when it's missing.</p>
+      </details>
+
+      <details>
+        <summary>can i change how it looks in my server?</summary>
+        <p><code class="kbd">,customize</code> is the one command that changes the bot's face.
+          avatar, banner and bio are set through discord's per-server profile, so they apply
+          to your server alone and every other server keeps the stock look. server owner only,
+          and reset puts it back.</p>
+      </details>
+
+      <details>
+        <summary>where is the shop?</summary>
+        <p>not built. <code class="kbd">,shop</code> and <code class="kbd">,buy</code> reply
+          that shop items have not been created yet, rather than pretending there's a catalogue.</p>
+      </details>
+
+      <details>
+        <summary>why only two slash commands?</summary>
+        <p>because the bot is built around typing. <code class="kbd">/help</code> and
+          <code class="kbd">/ping</code> exist so nothing has to be memorised before the first
+          command, and everything else lives on the <code class="kbd">,</code> prefix.</p>
+      </details>
+    </div>
+
+    <div class="band" style="margin-top: 34px">
+      <div>
+        <h2>still curious?</h2>
+        <p>the commands page has every name, alias and one-line description.</p>
+      </div>
+      <a class="btn btn-ghost" href="commands.html">open commands</a>
+    </div>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="mark" href="index.html">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+    <nav>
+      <a href="index.html">home</a>
+      <a href="commands.html">commands</a>
+      <a href="embeds.html">embeds</a>
+    </nav>
+    <span>private beta · built on discord.js 14</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

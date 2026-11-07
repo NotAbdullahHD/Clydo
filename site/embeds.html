@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>embeds — slink</title>
+<meta name="description" content="how slink replies: one line when one line is enough, discord grey as the surface, lavender as an accent.">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/pfp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="dock">
+  <div class="dock-in">
+    <a class="mark" href="index.html" aria-label="slink home">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+
+    <nav>
+      <a href="index.html">home</a>
+      <a href="commands.html">commands</a>
+      <a href="embeds.html" aria-current="page">embeds</a>
+      <a href="faq.html">faq</a>
+    </nav>
+
+    <span class="soon" title="invites open once the rough edges are gone"><i></i>invite soon</span>
+  </div>
+</div>
+
+<main class="page">
+  <div class="wrap">
+
+    <div class="page-head">
+      <p class="eyebrow rise"><span class="dot"></span> the look <b>·</b> one shape per reply</p>
+      <h1 class="rise" style="--d: 50ms">embeds</h1>
+      <p class="lede rise" style="--d: 100ms; margin-left: 0">
+        discord's own grey as the surface, lavender kept rare, and colour only when it
+        means something. below is what actually lands in the channel.
+      </p>
+    </div>
+
+    <section class="section" style="padding-top: 34px">
+      <div class="section-head">
+        <span>palette</span>
+        <span>click a swatch to copy the hex</span>
+      </div>
+
+      <div class="swatches">
+        <button class="swatch" data-copy="#2b2d31" style="--sw: #2b2d31">
+          <span class="fill"></span><em>panel</em><code>#2b2d31</code>
+        </button>
+        <button class="swatch" data-copy="#8d7bb4" style="--sw: #8d7bb4">
+          <span class="fill"></span><em>accent</em><code>#8d7bb4</code>
+        </button>
+        <button class="swatch" data-copy="#57f287" style="--sw: #57f287">
+          <span class="fill"></span><em>good</em><code>#57f287</code>
+        </button>
+        <button class="swatch" data-copy="#ed4245" style="--sw: #ed4245">
+          <span class="fill"></span><em>bad</em><code>#ed4245</code>
+        </button>
+        <button class="swatch" data-copy="#fee75c" style="--sw: #fee75c">
+          <span class="fill"></span><em>warn</em><code>#fee75c</code>
+        </button>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 10px">
+      <div class="section-head">
+        <span>in the channel</span>
+        <span>same three shapes, every time</span>
+      </div>
+
+      <div style="margin-top: 20px">
+        <div class="msg">
+          <img class="msg-avatar" src="assets/pfp.png" alt="">
+          <div class="msg-body">
+            <div class="msg-meta"><span>slink</span><span class="badge">app</span><time>today at 21:04</time></div>
+            <div class="emb emb-good"><p>✅ @you: deposited 🟡 500 into your bank.</p></div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <img class="msg-avatar" src="assets/pfp.png" alt="">
+          <div class="msg-body">
+            <div class="msg-meta"><span>slink</span><span class="badge">app</span><time>today at 21:04</time></div>
+            <div class="emb emb-bad"><p>❌ @you: you only have 🟡 3 on you.</p></div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <img class="msg-avatar" src="assets/pfp.png" alt="">
+          <div class="msg-body">
+            <div class="msg-meta"><span>slink</span><span class="badge">app</span><time>today at 21:04</time></div>
+            <div class="emb emb-grey">
+              <div class="emb-title">balance</div>
+              <pre><b>›</b> wallet  •  🟡 0
+<b>›</b> bank    •  🏦 1.9K
+<b>›</b> streak  •  2 days</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>one line, when it fits</h3>
+          <p>confirmations and refusals are a single sentence with a green or red edge.
+            nobody needs a field grid to hear that a deposit worked.</p>
+        </div>
+        <div class="rule">
+          <h3>lavender is an accent</h3>
+          <p>it shows up in the odd mark, never as the background of every embed.
+            the surface stays <code>#2b2d31</code> so replies blend into discord.</p>
+        </div>
+        <div class="rule">
+          <h3>numbers get shorter</h3>
+          <p><code>191900</code> is <code>191.9K</code>, and <code>999999</code> rounds up to
+            <code>1M</code> instead of printing <code>1000K</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 10px">
+      <div class="split-2">
+        <div>
+          <div class="section-head"><span>a panel when the data is real</span></div>
+          <p class="lede" style="margin: 16px 0 0">
+            commands with something to report build one panel: lowercase title, data lines
+            led by a single <code class="kbd">›</code>, a footer only when it earns its place.
+            no thumbnails, no emoji soup, no repeating the command name in the body.
+          </p>
+        </div>
+
+        <div>
+          <div class="section-head"><span>and nothing else</span></div>
+          <p class="lede" style="margin: 16px 0 0">
+            no <code class="kbd">›</code> bullet walls in a two-line reply, no decorative
+            dividers, no all-lavender embeds. if a reply can be one line, it is one line.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="mark" href="index.html">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+    <nav>
+      <a href="index.html">home</a>
+      <a href="commands.html">commands</a>
+      <a href="faq.html">faq</a>
+    </nav>
+    <span>private beta · built on discord.js 14</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

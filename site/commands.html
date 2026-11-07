@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>commands — slink</title>
+<meta name="description" content="all 48 slink commands, searchable by name, alias or description.">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/pfp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="dock">
+  <div class="dock-in">
+    <a class="mark" href="index.html" aria-label="slink home">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+
+    <nav>
+      <a href="index.html">home</a>
+      <a href="commands.html" aria-current="page">commands</a>
+      <a href="embeds.html">embeds</a>
+      <a href="faq.html">faq</a>
+    </nav>
+
+    <span class="soon" title="invites open once the rough edges are gone"><i></i>invite soon</span>
+  </div>
+</div>
+
+<main class="page">
+  <div class="wrap">
+
+    <div class="page-head">
+      <p class="eyebrow rise"><span class="dot"></span> all of them <b>·</b> <span class="count">48</span></p>
+      <h1 class="rise" style="--d: 50ms">commands</h1>
+      <p class="lede rise" style="--d: 100ms; margin-left: 0">
+        typed after <code class="kbd">,</code>. search by name, alias or what it does — the
+        list is generated from the bot's own source, so it cannot drift.
+      </p>
+    </div>
+
+    <div class="toolbar rise" style="--d: 150ms">
+      <label class="search" for="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <input id="search" type="search" placeholder="search commands" autocomplete="off" spellcheck="false">
+        <kbd>/</kbd>
+      </label>
+
+      <div class="picker">
+        <svg class="lead" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <select id="category" aria-label="filter by category">
+          <option value="all">all categories</option>
+          <option value="economy">economy · 13</option>
+          <option value="moderation">moderation · 10</option>
+          <option value="utility">utility · 10</option>
+          <option value="fun">fun · 15</option>
+        </select>
+        <svg class="trail" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+
+    <p class="meta"><span id="shown">48 of 48 shown</span></p>
+
+    <div class="deck"></div>
+
+    <div class="empty">
+      <p>nothing matches <code id="empty-term">that</code>.</p>
+      <button class="linkish" id="clear" type="button">clear the search</button>
+    </div>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="mark" href="index.html">
+      <img src="assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+    <nav>
+      <a href="index.html">home</a>
+      <a href="embeds.html">embeds</a>
+      <a href="faq.html">faq</a>
+    </nav>
+    <span>private beta · built on discord.js 14</span>
+  </div>
+</footer>
+
+<script src="commands-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

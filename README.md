@@ -290,7 +290,8 @@ export async function execute(interaction) {
 
 ## landing page
 
-`site/` is a static landing page — one html file, one stylesheet, no build step.
+`site/` is a static site — four pages (home, commands, embeds, faq), one stylesheet, no build step.
+`site/commands-data.js` is generated from `src/commands`, so the list cannot drift from the bot.
 the hero loads `site/assets/character.png` and falls back to the bot's profile
 picture when that file is missing.
 
