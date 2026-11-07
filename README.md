@@ -52,6 +52,7 @@ opens the same panel from chat.
 | `,flag` | guess the flag — ten seconds a round |
 | `,flaghint` | hint for the round running in this channel |
 | `,flaglb` | flag leaderboard, ten per page |
+| `,ship <@user> [@user]` | compatibility score for two people |
 | `,trivia [category]` | trivia round — fifteen seconds |
 | `,trivialb` | trivia leaderboard, ten per page |
 | `,fm` / `,fm set <user>` | last.fm now playing |

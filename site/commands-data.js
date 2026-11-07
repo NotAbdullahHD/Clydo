@@ -202,6 +202,13 @@ window.COMMANDS = [
   "aliases": []
  },
  {
+  "name": "ship",
+  "category": "fun",
+  "usage": ",ship",
+  "about": "",
+  "aliases": []
+ },
+ {
   "name": "sobs",
   "category": "fun",
   "usage": ",sobs",
