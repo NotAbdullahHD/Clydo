@@ -21,12 +21,27 @@ export const bank = '🏦';
 /** 191900 → 191.9K, 1500000 → 1.5M — never a wall of digits. */
 export function short(value) {
   const n = Math.round(Number(value) || 0);
+  if (n < 1_000) return String(n);
+
+  const units = [[1_000_000_000, 'B'], [1_000_000, 'M'], [1_000, 'K']];
   const trim = (number) => number.toFixed(1).replace(/\.0$/, '');
 
-  if (n >= 1_000_000_000) return `${trim(n / 1_000_000_000)}B`;
-  if (n >= 1_000_000) return `${trim(n / 1_000_000)}M`;
-  if (n >= 1_000) return `${trim(n / 1_000)}K`;
-  return String(n);
+  for (let index = 1; index < units.length; index += 1) {
+    const [size, suffix] = units[index];
+    if (n < size) continue;
+
+    const scaled = Math.round((n / size) * 10) / 10;
+
+    /* 999,999 rounds to 1000K — carry it into the next unit instead. */
+    if (scaled >= 1_000) {
+      const [bigger, bigSuffix] = units[index - 1];
+      return `${trim(Math.round((n / bigger) * 10) / 10)}${bigSuffix}`;
+    }
+
+    return `${trim(scaled)}${suffix}`;
+  }
+
+  return `${trim(Math.round((n / units[0][0]) * 10) / 10)}${units[0][1]}`;
 }
 
 /** ✅ one line, green. */
