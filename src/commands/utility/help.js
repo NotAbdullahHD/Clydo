@@ -4,7 +4,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { bio as appearance } from '../../lib/appearance.js';
+import { get as appearance } from '../../lib/appearance.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { block, entry, panel } from '../../lib/theme.js';
 

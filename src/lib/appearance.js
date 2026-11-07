@@ -3,25 +3,29 @@ import path from 'node:path';
 import { db } from './db.js';
 
 /**
- * appearance.
+ * per-server bot profile.
  *
- * discord has no per-server bot face: an avatar or banner is one image for the
- * whole application, so those two go straight to the client. the bio is the one
- * thing a server really can own, so it is stored per guild. the first time
- * anyone customizes, the shipped avatar and banner are remembered, which is what
- * reset puts back.
+ * modify current member takes avatar, banner and bio per guild, so one server can
+ * give the bot its own face without touching any other. images go up as base64
+ * data uris, which means downloading whatever link the owner pasted first.
+ *
+ * discord.js 14 does not expose these three on GuildMemberEditOptions, so the
+ * route is called directly — same endpoint, same payload, nothing dropped.
  */
 
 const file = path.join(process.cwd(), 'data', 'appearance.json');
 
-/** a guildId nobody can have, used for the remembered originals. */
-const original = 'defaults';
+/** discord rejects anything huge, and nobody needs a 20MB avatar. */
+const maxBytes = 5 * 1024 * 1024;
 
 let cache = null;
 
-const bioShape = (doc) => ({ guildId: doc.guildId, bio: doc.bio ?? null });
-
-const imageShape = (doc) => ({ avatar: doc?.avatar ?? null, banner: doc?.banner ?? null });
+const shape = (doc) => ({
+  guildId: doc.guildId,
+  avatar: doc.avatar ?? null,
+  banner: doc.banner ?? null,
+  bio: doc.bio ?? null,
+});
 
 async function load() {
   if (cache) return cache;
@@ -34,7 +38,7 @@ async function load() {
     raw = {};
   }
 
-  cache = { servers: raw?.servers ?? {}, defaults: raw?.defaults ?? {} };
+  cache = { servers: raw?.servers ?? {} };
   return cache;
 }
 
@@ -45,19 +49,19 @@ async function save() {
 
 const rows = () => db()?.collection('appearance');
 
-/** this server's bio. */
-export async function bio(guildId) {
+/** what this server asked for, not what discord currently holds. */
+export async function get(guildId) {
   const table = rows();
 
-  if (table) return bioShape((await table.findOne({ guildId })) ?? { guildId });
+  if (table) return shape((await table.findOne({ guildId })) ?? { guildId });
 
   const data = await load();
-  return bioShape(data.servers[guildId] ?? { guildId });
+  return shape(data.servers[guildId] ?? { guildId });
 }
 
-/** set or clear this server's bio. */
-export async function setBio(guildId, value) {
-  const next = bioShape({ guildId, bio: value || null });
+/** remember the request so the panel and reset know what was set. */
+export async function set(guildId, patch) {
+  const next = shape({ ...(await get(guildId)), ...patch });
   const table = rows();
 
   if (table) {
@@ -72,33 +76,37 @@ export async function setBio(guildId, value) {
   return next;
 }
 
-/** keep the first avatar and banner we ever saw, so reset has something to show. */
-export async function remember(avatar, banner) {
-  const table = rows();
+/** base64 data uri for anything discord will accept as an image. */
+export async function image(source) {
+  if (/^data:image\//i.test(source)) return source;
 
-  if (table) {
-    const existing = await table.findOne({ guildId: original });
-    if (existing) return imageShape(existing);
+  const response = await fetch(source);
+  if (!response.ok) throw new Error(`could not download that image (${response.status})`);
 
-    await table.updateOne({ guildId: original }, { $set: { guildId: original, avatar, banner } }, { upsert: true });
-    return imageShape({ avatar, banner });
-  }
+  const type = (response.headers.get('content-type') ?? 'image/png').split(';')[0].trim();
+  if (!type.startsWith('image/')) throw new Error('that link is not an image');
 
-  const data = await load();
-  if (data.defaults.avatar || data.defaults.banner) return imageShape(data.defaults);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.byteLength > maxBytes) throw new Error('that image is too large');
 
-  data.defaults = { avatar, banner };
-
-  await save();
-  return imageShape(data.defaults);
+  return `data:${type};base64,${bytes.toString('base64')}`;
 }
 
-/** what the bot looked like before anyone touched it. */
-export async function defaults() {
-  const table = rows();
+/**
+ * apply a look to one guild. null clears a field, undefined leaves it alone.
+ * returns the stored record; throws with a readable reason when discord refuses.
+ */
+export async function apply(client, guildId, patch) {
+  const body = {};
 
-  if (table) return imageShape(await table.findOne({ guildId: original }));
+  if ('avatar' in patch) body.avatar = patch.avatar ? await image(patch.avatar) : null;
+  if ('banner' in patch) body.banner = patch.banner ? await image(patch.banner) : null;
+  if ('bio' in patch) body.bio = patch.bio || null;
 
-  const data = await load();
-  return imageShape(data.defaults);
+  await client.rest.patch(`/guilds/${guildId}/members/@me`, { body });
+
+  return set(guildId, patch);
 }
+
+/** back to the plain application look, in this guild only. */
+export const reset = (client, guildId) => apply(client, guildId, { avatar: null, banner: null, bio: null });

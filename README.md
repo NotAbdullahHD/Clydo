@@ -64,7 +64,7 @@ opens the same panel from chat.
 | `,avatar [@user]` | their avatar at 1024 |
 | `,banner [@user]` | their profile banner, if they have one |
 | `,afk [reason]` | mark yourself away; your next message clears it |
-| `,customize [avatar|banner|bio|reset]` | bot avatar and banner, per-server bio, owner only |
+| `,customize [avatar|banner|bio|reset]` | per-server avatar, banner and bio, owner only |
 | `,purge <1-100>` | clear recent messages |
 | `,ban @user [reason]` | ban, with a DM first |
 | `,kick @user [reason]` | kick, with a DM first |
