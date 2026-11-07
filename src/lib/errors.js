@@ -2,7 +2,7 @@ import { MessageFlags } from 'discord.js';
 import { panel } from './theme.js';
 
 /**
- * clydo error handling.
+ * slink error handling.
  *
  * one path for every failure: log the whole thing once, show the user a short
  * monochrome panel with a ref code they can quote back, never leave an
@@ -15,7 +15,7 @@ const code = () => Date.now().toString(36).slice(-4);
 /** log a failure and return its ref code. */
 export function report(context, error) {
   const ref = code();
-  console.error(`[clydo] ${context} • ref ${ref} • ${new Date().toISOString()}`);
+  console.error(`[slink] ${context} • ref ${ref} • ${new Date().toISOString()}`);
   console.error(error);
   return ref;
 }
@@ -35,7 +35,7 @@ const expired = new Set([10062, 40060]);
 /** answer whatever state the interaction is in. */
 export async function failInteraction(interaction, error, context = 'command') {
   if (expired.has(error?.code)) {
-    console.warn(`[clydo] ${context} • interaction was already answered or expired.`);
+    console.warn(`[slink] ${context} • interaction was already answered or expired.`);
     return;
   }
 
@@ -72,7 +72,7 @@ export async function failInteraction(interaction, error, context = 'command') {
 /** same failure path for a prefix message. */
 export async function failMessage(message, error, context = 'command') {
   if (expired.has(error?.code)) {
-    console.warn(`[clydo] ${context} • message was already gone.`);
+    console.warn(`[slink] ${context} • message was already gone.`);
     return;
   }
 

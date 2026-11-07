@@ -1,9 +1,9 @@
 import { EmbedBuilder } from 'discord.js';
 
 /**
- * clydo visual system.
+ * slink visual system.
  *
- * doctrine: raw typography, zero emojis, strict lower-case, monochrome only.
+ * doctrine: raw typography, strict lower-case, one muted lavender accent.
  * every response is built from the tokens below — never inline a colour,
  * a glyph or a separator in a command file.
  *
@@ -13,15 +13,18 @@ import { EmbedBuilder } from 'discord.js';
  *   footer       a short closing line
  */
 
-/** primary panel colour — merges with discord dark mode for a native look. */
+/**
+ * the signature accent: muted lavender. against discord's own dark grey it reads
+ * as a tint rather than a colour of its own, which is the whole point.
+ */
 export const palette = Object.freeze({
-  panel: 0x2b2d31,
-  recessed: 0x1e1f22,
+  panel: 0x8d7bb4,
+  recessed: 0x2b2d31,
   void: 0x000000,
   ink: 0xffffff,
 });
 
-/** type marks — the only decorative characters clydo is allowed to use. */
+/** type marks — the only decorative characters slink is allowed to use. */
 export const marks = Object.freeze({
   accent: '›',
   dot: '•',
@@ -83,7 +86,7 @@ export function since(date, now = Date.now()) {
 }
 
 /**
- * build a clydo embed.
+ * build a slink embed.
  * titles, field names and footers are lower-cased automatically.
  */
 export function panel({ title, description, fields = [], footer } = {}) {

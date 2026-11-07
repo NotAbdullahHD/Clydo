@@ -1,6 +1,7 @@
-# clydo
+# slink
 
-a discord bot built on raw typography. zero emojis, strict lower-case, no bright colour.
+a discord bot built on raw typography. strict lower-case, one muted lavender
+accent, no clutter.
 
 ```
 › btc
@@ -12,14 +13,14 @@ a discord bot built on raw typography. zero emojis, strict lower-case, no bright
 
 | token | value | use |
 | --- | --- | --- |
-| panel | `#2b2d31` | every embed colour |
-| recessed | `#1e1f22` | nested / secondary panels |
+| panel | `#8d7bb4` | every embed colour — the signature accent |
+| recessed | `#2b2d31` | nested / secondary panels, discord's own grey |
 | void | `#000000` | pfp background |
 | ink | `#ffffff` | pfp linework |
 
 - accents are limited to `›`, `•`, `—` and `━━━━━━━━━━`
 - every title, field name, footer and label is lower-case
-- no emojis, no colour accents, no images inside embeds
+- no emojis beyond the occasional status mark, no colour accents, no images inside embeds
 - the flag game is the one exception: it keeps labubu's embed, its ❓ / 📊 buttons and
   plain-text results, because it is the same game people already know
 
@@ -94,7 +95,7 @@ DISCORD_TOKEN=your bot token
 GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
 MESSAGE_INTENT=false
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/clydo?appName=clydo
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/slink?appName=slink
 LASTFM_API_KEY=
 SERPAPI_KEY=
 PREFIX=,
@@ -210,7 +211,7 @@ why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 ## storage
 
 sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
-database name comes from the uri path (`/clydo`), seven collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`,
+database name comes from the uri path (`/slink`), seven collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`,
 `family`) with a unique index on each key, plus a 30-day ttl that trims the award
 ledger. with no uri, everything falls back to `data/*.json` — sobs, flags, trivia,
 lastfm and family — so a fresh checkout still runs. an existing json file is moved

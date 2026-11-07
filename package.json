@@ -1,8 +1,8 @@
 {
-  "name": "clydo",
+  "name": "slink",
   "version": "0.1.0",
   "private": true,
-  "description": "clydo — a minimalist discord bot. raw typography, zero emojis, strict lower-case.",
+  "description": "slink — a minimalist discord bot. raw typography, zero emojis, strict lower-case.",
   "type": "module",
   "main": "src/index.js",
   "engines": {

@@ -9,13 +9,13 @@ export async function prefix(message, args) {
   const ok = (text) => message.reply({ embeds: [new EmbedBuilder().setColor(0x57F287).setDescription(text)] });
 
   if (!message.member.permissions.has(PermissionFlagsBits.KickMembers)) {
-    return err('⚠️  You need **Kick Members** permission.');
+    return err(' You need **Kick Members** permission.');
   }
 
   const member = message.mentions.members.first();
-  if (!member) return err('⚠️  Usage: `,kick @user [reason]`');
-  if (!member.kickable) return err('❌ I cannot kick this user (check role hierarchy).');
-  if (member.id === message.author.id) return err('❌ You cannot kick yourself.');
+  if (!member) return err(' Usage: `,kick @user [reason]`');
+  if (!member.kickable) return err('I cannot kick this user (check role hierarchy).');
+  if (member.id === message.author.id) return err('You cannot kick yourself.');
 
   const reason = args.slice(1).join(' ') || 'No reason provided';
 
@@ -30,5 +30,5 @@ export async function prefix(message, args) {
 
   await member.kick(reason);
 
-  return ok(`✅ **${member.user.tag}** has been kicked.\n**Reason:** ${reason}`);
+  return ok(`**${member.user.tag}** has been kicked.\n**Reason:** ${reason}`);
 }

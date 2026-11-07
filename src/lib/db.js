@@ -12,7 +12,7 @@ let database = null;
 /** the connected database, or null while falling back to json. */
 export const db = () => database;
 
-export async function connect(uri, fallbackName = 'clydo', log = () => {}) {
+export async function connect(uri, fallbackName = 'slink', log = () => {}) {
   if (!uri) {
     log('no MONGO_URI — counts stay in data/sobs.json.');
     return null;

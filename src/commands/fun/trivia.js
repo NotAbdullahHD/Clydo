@@ -28,7 +28,7 @@ async function leaderboard(guild) {
   return new EmbedBuilder()
     .setTitle('🧠 Trivia Leaderboard')
     .setDescription(top.map((player, index) => `${index + 1}. ${player.username ?? player.userId} — **${player.score}** pts`).join('\n'))
-    .setColor(0x5865F2)
+    .setColor(0x8d7bb4)
     .setFooter({ text: `Page 1/${Math.max(1, Math.ceil(count / 10))}` });
 }
 
@@ -58,7 +58,7 @@ export async function prefix(message, args) {
   const embed = new EmbedBuilder()
     .setTitle('🧠 Trivia Time!')
     .setDescription(`**${q.q}**\n\nType your answer in chat! You have **15 seconds**.`)
-    .setColor(0x5865F2)
+    .setColor(0x8d7bb4)
     .setFooter({ text: `${q.category} • ${categoryLabel !== q.category ? categoryLabel : 'All Categories'}` })
     .setTimestamp();
 

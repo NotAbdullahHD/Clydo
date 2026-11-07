@@ -13,7 +13,7 @@ import path from 'node:path';
  * exiting quietly.
  */
 
-const file = path.join(process.cwd(), '.clydo.pid');
+const file = path.join(process.cwd(), '.slink.pid');
 
 const alive = (pid) => {
   try {

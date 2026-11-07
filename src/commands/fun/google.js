@@ -70,7 +70,7 @@ export async function search(message, args, type = 'web') {
 
       const embed = new EmbedBuilder()
         .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-        .setColor(0x4285F4)
+        .setColor(0x8d7bb4)
         .setFooter({
           text: `Page ${position + 1}/${total} of Google ${type === 'image' ? 'Images' : 'Search'} (Safe Mode)`,
           iconURL: 'https://www.google.com/favicon.ico',

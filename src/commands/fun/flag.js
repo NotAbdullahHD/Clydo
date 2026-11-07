@@ -8,7 +8,7 @@ import { palette } from '../../lib/theme.js';
  *
  * the embed is titled "Guess the Flag" with the flag as its thumbnail, the ❓ and
  * 📊 buttons sit underneath, and results go out as plain lines in chat instead of
- * a panel. this game is the one deliberate exception to clydo's no-emoji rule:
+ * a panel. this game is the one deliberate exception to slink's no-emoji rule:
  * it is the game people already know.
  */
 
@@ -97,7 +97,7 @@ export async function prefix(message) {
 
       await message.channel.send(`✅ **${winner.author.username}** got it! The correct answer was: **${flag[1]}**`);
     } catch (error) {
-      console.warn('[clydo] flag round skipped —', error?.message ?? error);
+      console.warn('[slink] flag round skipped —', error?.message ?? error);
     }
   });
 
@@ -110,7 +110,7 @@ export async function prefix(message) {
 
       await message.channel.send(`⏰ ${message.author} Time's up! The correct answer was: **${flag[1]}**`);
     } catch (error) {
-      console.warn('[clydo] flag round skipped —', error?.message ?? error);
+      console.warn('[slink] flag round skipped —', error?.message ?? error);
     }
   });
 
@@ -134,7 +134,7 @@ export async function prefix(message) {
 
       await message.channel.send({ embeds: [await leaderboard(message.guild)] });
     } catch (error) {
-      console.warn('[clydo] flag button skipped —', error?.message ?? error);
+      console.warn('[slink] flag button skipped —', error?.message ?? error);
     }
   });
 }

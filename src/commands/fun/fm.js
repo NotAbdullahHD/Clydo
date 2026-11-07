@@ -62,7 +62,7 @@ export async function prefix(message, args) {
     const art = track.image?.[2]?.['#text'];
 
     const embed = new EmbedBuilder()
-      .setColor(playing ? '#00FF00' : '#2b2d31')
+      .setColor(0x8d7bb4)
       .setAuthor({ name: `Last.fm: ${saved}`, iconURL: message.author.displayAvatarURL() })
       .setTitle(`🎵 ${track.name}`)
       .setDescription(`**Artist:** ${track.artist['#text']}\n**Album:** ${track.album['#text']}`)
@@ -72,7 +72,7 @@ export async function prefix(message, args) {
 
     await message.reply({ embeds: [embed] });
   } catch (error) {
-    console.warn('[clydo] last.fm lookup failed —', error?.message ?? error);
+    console.warn('[slink] last.fm lookup failed —', error?.message ?? error);
     await message.reply('❌ Error talking to Last.fm.');
   }
 }

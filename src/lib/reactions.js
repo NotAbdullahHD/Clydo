@@ -46,7 +46,7 @@ export function watch(client) {
 
       await award(message.guildId, message.id, user.id, author.id);
     } catch (error) {
-      console.warn('[clydo] sob reaction skipped —', error?.message ?? error);
+      console.warn('[slink] sob reaction skipped —', error?.message ?? error);
     }
   });
 
@@ -60,7 +60,7 @@ export function watch(client) {
 
       await revoke(message.guildId, message.id, user.id);
     } catch (error) {
-      console.warn('[clydo] sob removal skipped —', error?.message ?? error);
+      console.warn('[slink] sob removal skipped —', error?.message ?? error);
     }
   });
 }

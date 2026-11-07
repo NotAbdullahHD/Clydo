@@ -8,11 +8,11 @@ export async function prefix(message, args) {
   const err = (text) => message.reply({ embeds: [new EmbedBuilder().setColor(0xED4245).setDescription(text)] });
 
   if (!message.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-    return err('⚠️ You need **Moderate Members** permission.');
+    return err('You need **Moderate Members** permission.');
   }
 
   const target = message.mentions.members.first();
-  if (!target) return err('⚠️ Usage: `,warn @user [reason]`');
+  if (!target) return err('Usage: `,warn @user [reason]`');
 
   const reason = args.slice(1).join(' ') || 'No reason provided';
 
@@ -30,7 +30,7 @@ export async function prefix(message, args) {
     embeds: [
       new EmbedBuilder()
         .setColor(0xFEE75C)
-        .setDescription(`⚠️ **${target.user.username}** has been warned.\n**Reason:** ${reason}`),
+        .setDescription(`**${target.user.username}** has been warned.\n**Reason:** ${reason}`),
     ],
   });
 }

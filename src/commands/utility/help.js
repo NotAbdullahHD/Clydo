@@ -14,15 +14,9 @@ import { block, entry, panel } from '../../lib/theme.js';
 
 export const data = new SlashCommandBuilder()
   .setName('help')
-  .setDescription('list everything clydo can do');
+  .setDescription('list everything slink can do');
 
 const home = 'home';
-
-const moduleEmoji = (module) => ({
-  fun: '🎮',
-  moderation: '🔨',
-  utility: '🧰',
-}[module] ?? '📁');
 
 const describe = (command) => command.data?.description
   ?? (typeof command.prefix === 'function' ? 'prefix command' : '');
@@ -49,14 +43,16 @@ function build(client, selected = home) {
       .map((name) => entry(name, describe(client.commands.get(name)))));
 
   const embed = panel({
-    title: selected === home ? 'clydo help' : `clydo help — ${selected}`,
+    title: selected === home ? 'slink help' : `slink help — ${selected}`,
     description,
     fields: [
-      { name: '📋 prefix', value: `\`${prefixChar}\``, inline: true },
-      { name: '{ } commands', value: `\`${total}\``, inline: true },
-      { name: '▦ modules', value: `\`${modules.size}\``, inline: true },
+      { name: 'prefix', value: `\`${prefixChar}\``, inline: true },
+      { name: 'commands', value: `\`${total}\``, inline: true },
+      { name: 'modules', value: `\`${modules.size}\``, inline: true },
     ],
-    footer: `use ${prefixChar}help <command> for details on a specific command`,
+    footer: selected === home
+      ? `use ${prefixChar}help <command> for details on a specific command`
+      : undefined,
   });
 
   const avatar = client.user?.displayAvatarURL({ size: 256 });
@@ -64,13 +60,12 @@ function build(client, selected = home) {
 
   const menu = new StringSelectMenuBuilder()
     .setCustomId('help:module')
-    .setPlaceholder('select a module')
+    .setPlaceholder('pick a module')
     .addOptions(
-      new StringSelectMenuOptionBuilder().setLabel('Home').setValue(home).setEmoji('🏠'),
+      new StringSelectMenuOptionBuilder().setLabel('home').setValue(home),
       ...[...modules.keys()].sort().map((module) => new StringSelectMenuOptionBuilder()
         .setLabel(module)
-        .setValue(module)
-        .setEmoji(moduleEmoji(module))),
+        .setValue(module)),
     );
 
   return { embeds: [embed], components: [new ActionRowBuilder().addComponents(menu)] };
@@ -84,9 +79,8 @@ function detail(client, name) {
   const usage = command.data ? `/${name}` : `${prefixChar}${name}`;
 
   return panel({
-    title: `clydo help — ${name}`,
+    title: `slink help — ${name}`,
     description: block(entry('module', module), entry('usage', `\`${usage}\``), entry('does', describe(command) || 'nothing documented')),
-    footer: `use ${prefixChar}help for the full list`,
   });
 }
 

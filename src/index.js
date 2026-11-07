@@ -32,7 +32,7 @@ const overrides = {
   messageContent: process.env.MESSAGE_INTENT?.trim().toLowerCase(),
 };
 
-const log = (...args) => console.log('[clydo]', ...args);
+const log = (...args) => console.log('[slink]', ...args);
 
 if (!token) {
   log('no token found.');
@@ -88,7 +88,7 @@ if (holder) {
 
 process.on('exit', release);
 
-const mongo = await connect(process.env.MONGO_URI?.trim(), 'clydo', log);
+const mongo = await connect(process.env.MONGO_URI?.trim(), 'slink', log);
 
 if (mongo) {
   const migrated = await migrateFromJson();
