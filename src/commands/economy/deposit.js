@@ -14,7 +14,7 @@ export async function prefix(message, args) {
     await message.reply({
       embeds: [panel({
         title: 'deposit',
-        description: value === null && args[0]?.toLowerCase() === 'all' && record.wallet === 0
+        description: args[0]?.toLowerCase() === 'all' && record.wallet === 0
           ? 'your wallet is empty.'
           : 'usage — `,dep <amount|all>`',
       })],
