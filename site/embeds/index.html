@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>embed builder — slink</title>
+<meta name="description" content="compose an embed, watch it render, copy the json. slink will accept it once the command lands.">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="/assets/pfp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="dock">
+  <div class="dock-in">
+    <a class="mark" href="/home" aria-label="slink home">
+      <img src="/assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+
+    <nav>
+      <a href="/home">home</a>
+      <a href="/commands">commands</a>
+      <a href="/embeds" aria-current="page">embeds</a>
+      <a href="/faq">faq</a>
+    </nav>
+
+    <span class="soon" title="invites open once the rough edges are gone"><i></i>invite soon</span>
+  </div>
+</div>
+
+<main class="page">
+  <div class="wrap">
+
+    <div class="page-head">
+      <p class="eyebrow rise"><span class="dot"></span> builder <b>·</b> not wired to the bot yet</p>
+      <h1 class="rise" style="--d: 50ms">embed builder</h1>
+      <p class="lede rise" style="--d: 100ms; margin-left: 0">
+        write it here, watch it land in the preview, copy the json. once the command exists
+        in slink, this is exactly the payload it will take.
+      </p>
+    </div>
+
+    <div class="builder">
+
+      <form id="builder" class="builder-form" autocomplete="off">
+
+        <div class="sheet">
+          <div class="sheet-head"><h2>content</h2></div>
+
+          <label class="field">
+            <span>author</span>
+            <input class="input" id="author" type="text" maxlength="256" placeholder="who it comes from">
+            <span class="counter" data-count="author">0/256</span>
+          </label>
+
+          <label class="field">
+            <span>title</span>
+            <input class="input" id="title" type="text" maxlength="256" placeholder="balance">
+            <span class="counter" data-count="title">0/256</span>
+          </label>
+
+          <label class="field">
+            <span>description</span>
+            <textarea class="area" id="desc" maxlength="4096" placeholder="one or two lines. newlines are kept."></textarea>
+            <span class="counter" data-count="desc">0/4096</span>
+          </label>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-head"><h2>colour</h2></div>
+
+          <div class="color-row">
+            <button class="dot-btn" type="button" data-color="#2b2d31" style="--sw:#2b2d31" aria-label="panel grey" aria-pressed="true"></button>
+            <button class="dot-btn" type="button" data-color="#8d7bb4" style="--sw:#8d7bb4" aria-label="lavender" aria-pressed="false"></button>
+            <button class="dot-btn" type="button" data-color="#57f287" style="--sw:#57f287" aria-label="green" aria-pressed="false"></button>
+            <button class="dot-btn" type="button" data-color="#ed4245" style="--sw:#ed4245" aria-label="red" aria-pressed="false"></button>
+            <button class="dot-btn" type="button" data-color="#fee75c" style="--sw:#fee75c" aria-label="yellow" aria-pressed="false"></button>
+
+            <input class="input" id="color" type="text" value="#2b2d31" maxlength="7" style="width: 96px; margin-left: auto" aria-label="hex colour">
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-head">
+            <h2>fields</h2>
+            <button class="mini" id="add-field" type="button">add field</button>
+          </div>
+
+          <div id="fields"></div>
+          <p class="preview-empty" id="no-fields" style="padding: 14px">no fields yet — some embeds don't need any.</p>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-head"><h2>extras</h2></div>
+
+          <label class="field">
+            <span>thumbnail url</span>
+            <input class="input" id="thumb" type="url" placeholder="https://…">
+          </label>
+
+          <label class="field">
+            <span>footer</span>
+            <input class="input" id="footer" type="text" maxlength="2048" placeholder="a short closing line">
+            <span class="counter" data-count="footer">0/2048</span>
+          </label>
+        </div>
+
+      </form>
+
+      <div class="preview-sticky">
+        <div class="sheet-head" style="margin: 0">
+          <h2>preview</h2>
+          <button class="mini" id="reset" type="button">reset</button>
+        </div>
+
+        <div id="preview"></div>
+
+        <div class="sheet-head" style="margin: 6px 0 0">
+          <h2>json</h2>
+          <button class="mini" id="copy-json" type="button"><span class="copy-label">copy json</span></button>
+        </div>
+
+        <pre class="json" id="json"></pre>
+
+        <p class="counter" style="text-align: left; line-height: 1.7">
+          this is the shape slink will store and send — colour is an int, fields keep their
+          inline flag. sending from the page comes with the command, not before it.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="mark" href="/home">
+      <img src="/assets/pfp.png" alt="">
+      <span>slink</span>
+    </a>
+    <nav>
+      <a href="/home">home</a>
+      <a href="/commands">commands</a>
+      <a href="/faq">faq</a>
+    </nav>
+    <span>private beta · built on discord.js 14</span>
+  </div>
+</footer>
+
+<script src="/embed-builder.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

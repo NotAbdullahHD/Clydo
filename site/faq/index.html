@@ -6,26 +6,26 @@
 <title>faq — slink</title>
 <meta name="description" content="is it free, what permissions it needs, how per-server looks work, and why invites are closed.">
 <meta name="theme-color" content="#08090b">
-<link rel="icon" href="assets/pfp.png">
+<link rel="icon" href="/assets/pfp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 
 <div class="dock">
   <div class="dock-in">
-    <a class="mark" href="index.html" aria-label="slink home">
-      <img src="assets/pfp.png" alt="">
+    <a class="mark" href="/home" aria-label="slink home">
+      <img src="/assets/pfp.png" alt="">
       <span>slink</span>
     </a>
 
     <nav>
-      <a href="index.html">home</a>
-      <a href="commands.html">commands</a>
-      <a href="embeds.html">embeds</a>
-      <a href="faq.html" aria-current="page">faq</a>
+      <a href="/home">home</a>
+      <a href="/commands">commands</a>
+      <a href="/embeds">embeds</a>
+      <a href="/faq" aria-current="page">faq</a>
     </nav>
 
     <span class="soon" title="invites open once the rough edges are gone"><i></i>invite soon</span>
@@ -77,6 +77,13 @@
       </details>
 
       <details>
+        <summary>what is the embed builder for?</summary>
+        <p>it composes the exact json a future <code class="kbd">,embed</code> command will take:
+          author, title, description, colour, fields, thumbnail and footer. the page doesn't
+          post anything — the command has to exist first.</p>
+      </details>
+
+      <details>
         <summary>where is the shop?</summary>
         <p>not built. <code class="kbd">,shop</code> and <code class="kbd">,buy</code> reply
           that shop items have not been created yet, rather than pretending there's a catalogue.</p>
@@ -95,7 +102,7 @@
         <h2>still curious?</h2>
         <p>the commands page has every name, alias and one-line description.</p>
       </div>
-      <a class="btn btn-ghost" href="commands.html">open commands</a>
+      <a class="btn btn-ghost" href="/commands">open commands</a>
     </div>
 
   </div>
@@ -103,19 +110,19 @@
 
 <footer class="foot">
   <div class="wrap foot-in">
-    <a class="mark" href="index.html">
-      <img src="assets/pfp.png" alt="">
+    <a class="mark" href="/home">
+      <img src="/assets/pfp.png" alt="">
       <span>slink</span>
     </a>
     <nav>
-      <a href="index.html">home</a>
-      <a href="commands.html">commands</a>
-      <a href="embeds.html">embeds</a>
+      <a href="/home">home</a>
+      <a href="/commands">commands</a>
+      <a href="/embeds">embeds</a>
     </nav>
     <span>private beta · built on discord.js 14</span>
   </div>
 </footer>
 
-<script src="app.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

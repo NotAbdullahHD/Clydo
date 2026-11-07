@@ -1,0 +1,7 @@
+/            /home        302
+
+# clean paths, explicit so no host has to guess
+/home        /home/index.html      200
+/commands    /commands/index.html  200
+/embeds      /embeds/index.html    200
+/faq         /faq/index.html       200

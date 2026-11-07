@@ -1,4 +1,4 @@
-/* shared behaviour: dock shadow on scroll, copy buttons, the reply ticker, command search. */
+/* shared behaviour: dock shadow, copy buttons, the reply ticker, command search, parallax. */
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -30,26 +30,48 @@ document.addEventListener('click', async (event) => {
   }, 1400);
 });
 
+/* the 3d furniture leans with the pointer */
+const scene = document.querySelector('.scene');
+
+if (scene && !reduce) {
+  let queued = false;
+
+  window.addEventListener('pointermove', (event) => {
+    if (queued) return;
+
+    queued = true;
+
+    requestAnimationFrame(() => {
+      queued = false;
+      scene.style.setProperty('--mx', ((event.clientX / window.innerWidth) - 0.5).toFixed(3));
+      scene.style.setProperty('--my', ((event.clientY / window.innerHeight) - 0.5).toFixed(3));
+    });
+  }, { passive: true });
+}
+
 /* the hero card types real replies from the bot */
 const ticker = document.querySelector('.ticker-line');
 
 if (ticker) {
   const replies = [
-    { text: '@you: deposited 🟡 500 into your bank.' },
-    { text: '@you: you only have 🟡 3 on you.' },
-    { text: '@you: withdrew 🟡 1.9K from your bank.' },
-    { text: '@you: your bank is empty.' },
+    '@you: deposited 🟡 500 into your bank.',
+    '@you: you only have 🟡 3 on you.',
+    '@you: withdrew 🟡 1.9K from your bank.',
+    '@you: your bank is empty.',
   ];
 
   const caret = document.createElement('span');
   caret.className = 'caret';
+
+  /* the text node has to come first — the caret is decoration after it. */
+  const line = document.createTextNode('');
   ticker.textContent = '';
-  ticker.append(caret);
+  ticker.append(line, caret);
 
   let index = 0;
 
   const write = (text, position = 0) => {
-    ticker.firstChild.nodeValue = text.slice(0, position);
+    line.nodeValue = text.slice(0, position);
 
     if (position < text.length) {
       setTimeout(() => write(text, position + 1), 26);
@@ -64,7 +86,7 @@ if (ticker) {
 
     const step = () => {
       position -= 2;
-      ticker.firstChild.nodeValue = text.slice(0, Math.max(0, position));
+      line.nodeValue = text.slice(0, Math.max(0, position));
 
       if (position > 0) {
         setTimeout(step, 14);
@@ -72,18 +94,16 @@ if (ticker) {
       }
 
       index = (index + 1) % replies.length;
-      setTimeout(() => write(replies[index].text), 260);
+      setTimeout(() => write(replies[index]), 260);
     };
 
     step();
   };
 
-  ticker.append(document.createTextNode(''));
-
   if (reduce) {
-    ticker.firstChild.nodeValue = replies[0].text;
+    line.nodeValue = replies[0];
   } else {
-    setTimeout(() => write(replies[0].text), 500);
+    setTimeout(() => write(replies[0]), 500);
   }
 }
 
@@ -92,7 +112,11 @@ const deck = document.querySelector('.deck');
 
 if (deck && Array.isArray(window.COMMANDS)) {
   const search = document.querySelector('#search');
-  const picker = document.querySelector('#category');
+  const button = document.querySelector('#picker-btn');
+  const menu = document.querySelector('#picker-menu');
+  const pickerLabel = document.querySelector('#picker-label');
+  const pickerTotal = document.querySelector('#picker-total');
+  const options = [...(menu?.querySelectorAll('li') ?? [])];
   const meta = document.querySelector('#shown');
   const empty = document.querySelector('.empty');
   const emptyTerm = document.querySelector('#empty-term');
@@ -138,9 +162,94 @@ if (deck && Array.isArray(window.COMMANDS)) {
     if (emptyTerm) emptyTerm.textContent = query.trim() || 'that';
   };
 
-  search?.addEventListener('input', () => { query = search.value; render(); });
+  /* the picker: our own menu, because a native select opens a white os popup */
+  let cursor = 0;
 
-  picker?.addEventListener('change', () => { category = picker.value; render(); });
+  const paint = () => {
+    options.forEach((option, position) => {
+      option.classList.toggle('cursor', position === cursor);
+    });
+  };
+
+  const choose = (value) => {
+    category = value;
+
+    const picked = options.find((option) => option.dataset.value === value);
+    if (picked && pickerLabel) pickerLabel.textContent = picked.dataset.label;
+    if (picked && pickerTotal) pickerTotal.textContent = picked.dataset.count;
+
+    options.forEach((option) => option.setAttribute('aria-selected', String(option.dataset.value === value)));
+    render();
+  };
+
+  const open = () => {
+    if (!menu) return;
+
+    cursor = Math.max(0, options.findIndex((option) => option.dataset.value === category));
+    menu.hidden = false;
+    button?.setAttribute('aria-expanded', 'true');
+    paint();
+    options[cursor]?.focus?.();
+  };
+
+  const close = () => {
+    if (!menu) return;
+
+    menu.hidden = true;
+    button?.setAttribute('aria-expanded', 'false');
+    options.forEach((option) => option.classList.remove('cursor'));
+  };
+
+  button?.addEventListener('click', () => (menu?.hidden ? open() : close()));
+
+  options.forEach((option, position) => {
+    option.tabIndex = -1;
+
+    option.addEventListener('click', () => {
+      choose(option.dataset.value);
+      close();
+      button?.focus();
+    });
+
+    option.addEventListener('pointerenter', () => {
+      cursor = position;
+      paint();
+    });
+  });
+
+  button?.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      open();
+    }
+  });
+
+  menu?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      close();
+      button?.focus();
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      cursor = Math.max(0, Math.min(options.length - 1, cursor + (event.key === 'ArrowDown' ? 1 : -1)));
+      paint();
+      options[cursor]?.focus();
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      choose(options[cursor].dataset.value);
+      close();
+      button?.focus();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.picker')) close();
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === '/' && document.activeElement !== search) {
@@ -156,11 +265,13 @@ if (deck && Array.isArray(window.COMMANDS)) {
     }
   });
 
+  search?.addEventListener('input', () => { query = search.value; render(); });
+
   document.querySelector('#clear')?.addEventListener('click', () => {
     if (search) search.value = '';
     query = '';
     render();
   });
 
-  render();
+  choose('all');
 }
