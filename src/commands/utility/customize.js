@@ -8,25 +8,22 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { get, reset, set } from '../../lib/appearance.js';
+import { bio as readBio, defaults, remember, setBio } from '../../lib/appearance.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { palette } from '../../lib/theme.js';
 
 /**
- * `,customize` — the panel from the reference shot, for this server only.
+ * `,customize` — the panel from the reference shot.
  *
- * avatar, banner and bio are stored per guild and worn inside the bot's own
- * embeds. the server owner sets them; nobody else can, not even the bot owner's
- * other servers' admins.
+ * avatar and banner are applied to the bot itself, so they change everywhere:
+ * discord keeps one face per application, not one per server. the bio is stored
+ * per guild and shown on the help panel. the server owner runs all of it.
  */
 
 export const name = 'customize';
 
-const fields = {
-  avatar: { label: 'avatar url', hint: 'direct image link', max: 400, style: TextInputStyle.Short },
-  banner: { label: 'banner url', hint: 'wide image, direct link', max: 400, style: TextInputStyle.Short },
-  bio: { label: 'bio', hint: 'one or two lines', max: 200, style: TextInputStyle.Paragraph },
-};
+const maxBio = 200;
+const maxImage = 400;
 
 const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
 const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
@@ -38,15 +35,15 @@ const isUrl = (value) => /^https?:\/\/\S+$/i.test(value);
 
 const blurb = 'Change how I appear in this server. Only the server owner can use these.';
 
-/** the card: title, one line, the look underneath. */
+const footnote = 'avatar and banner are one image for the whole bot — discord has no per-server face.';
+
+/** the card: the line from the screenshot, the bio, four buttons. */
 function card(record) {
   const embed = new EmbedBuilder()
     .setColor(palette.panel)
     .setTitle('Customization')
-    .setDescription(record.bio ? `${blurb}\n\n${record.bio}` : blurb);
-
-  if (record.avatar) embed.setThumbnail(record.avatar);
-  if (record.banner) embed.setImage(record.banner);
+    .setDescription(record.bio ? `${blurb}\n\n${record.bio}` : blurb)
+    .setFooter({ text: footnote });
 
   return embed;
 }
@@ -58,7 +55,37 @@ const buttons = () => new ActionRowBuilder().addComponents(
   new ButtonBuilder().setCustomId('customize:reset').setLabel('Reset').setStyle(ButtonStyle.Danger),
 );
 
-/** the panel, with a two-minute collector so the buttons actually work. */
+/** true when the change landed, otherwise the reason it did not. */
+async function apply(client, field, input) {
+  await remember(
+    client.user?.avatarURL?.({ size: 1024 }) ?? null,
+    client.user?.bannerURL?.({ size: 1024 }) ?? null,
+  );
+
+  try {
+    if (field === 'avatar') await client.user.setAvatar(input);
+    else await client.user.setBanner(input);
+
+    return true;
+  } catch (error) {
+    const reason = String(error?.message ?? 'unknown error');
+    return /rate/i.test(reason)
+      ? 'discord is rate limiting that — try again later.'
+      : `could not set the ${field}: ${reason.slice(0, 80)}`;
+  }
+}
+
+/** put the shipped face back and clear this server's bio. */
+async function wipe(client, guildId) {
+  await setBio(guildId, null);
+
+  const saved = await defaults();
+
+  if (saved.avatar) await client.user?.setAvatar(saved.avatar).catch(() => {});
+  if (saved.banner) await client.user?.setBanner(saved.banner).catch(() => {});
+}
+
+/** the panel, with a two-minute collector so the buttons work. */
 async function open(message, record) {
   const sent = await message.reply({ embeds: [card(record)], components: [buttons()] });
 
@@ -74,25 +101,26 @@ async function open(message, record) {
     }
 
     if (press.customId === 'customize:reset') {
-      await press.update({ embeds: [card(await reset(message.guild.id))], components: [buttons()] });
+      await wipe(message.client, message.guild.id);
+      await press.update({ embeds: [card(await readBio(message.guild.id))], components: [buttons()] });
       return;
     }
 
     const field = press.customId.split(':')[1];
-    const spec = fields[field];
+    const current = field === 'bio' ? record.bio ?? '' : '';
 
     await press.showModal(new ModalBuilder()
       .setCustomId(`customize:modal:${field}`)
-      .setTitle(spec.label)
+      .setTitle(field === 'bio' ? 'bio' : `${field} url`)
       .addComponents(new ActionRowBuilder().addComponents(
         new TextInputBuilder()
           .setCustomId('value')
-          .setLabel(spec.label)
-          .setPlaceholder(spec.hint)
-          .setStyle(spec.style)
-          .setMaxLength(spec.max)
+          .setLabel(field === 'bio' ? 'bio' : `${field} link`)
+          .setPlaceholder(field === 'bio' ? 'one or two lines' : 'direct image link or upload')
+          .setStyle(field === 'bio' ? TextInputStyle.Paragraph : TextInputStyle.Short)
+          .setMaxLength(field === 'bio' ? maxBio : maxImage)
           .setRequired(false)
-          .setValue(record[field] ?? ''),
+          .setValue(current),
       )));
 
     const submitted = await press
@@ -103,22 +131,35 @@ async function open(message, record) {
 
     const value = submitted.fields.getTextInputValue('value').trim();
 
-    if (value && field !== 'bio' && !isUrl(value)) {
+    if (field === 'bio') {
+      await setBio(message.guild.id, value);
       await submitted.reply({
-        embeds: [no(`${field} needs a direct image link.`)],
+        embeds: [ok(value ? 'bio updated.' : 'bio cleared.')],
         flags: MessageFlags.Ephemeral,
       });
+
+      await sent.edit({ embeds: [card(await readBio(message.guild.id))], components: [buttons()] });
       return;
     }
 
-    const next = await set(message.guild.id, { [field]: value || null });
+    if (!value) {
+      await submitted.reply({ embeds: [no(`give me a ${field} link.`)], flags: MessageFlags.Ephemeral });
+      return;
+    }
+
+    if (!isUrl(value)) {
+      await submitted.reply({ embeds: [no(`${field} needs a direct image link.`)], flags: MessageFlags.Ephemeral });
+      return;
+    }
+
+    const applied = await apply(message.client, field, value);
 
     await submitted.reply({
-      embeds: [ok(value ? `${field} updated.` : `${field} cleared.`)],
+      embeds: [applied === true ? ok(`${field} updated.`) : no(applied)],
       flags: MessageFlags.Ephemeral,
     });
 
-    await sent.edit({ embeds: [card(next)], components: [buttons()] });
+    await sent.edit({ embeds: [card(await readBio(message.guild.id))], components: [buttons()] });
   });
 
   collector.on('end', () => {
@@ -135,22 +176,21 @@ export async function prefix(message, args) {
   }
 
   const sub = args[0]?.toLowerCase();
-  const record = await get(message.guild.id);
 
   if (!sub) {
-    await open(message, record);
+    await open(message, await readBio(message.guild.id));
     return;
   }
 
   if (sub === 'reset' || sub === 'clear') {
-    await reset(message.guild.id);
-    await message.reply({ embeds: [ok('server appearance reset.')] });
+    await wipe(message.client, message.guild.id);
+    await message.reply({ embeds: [ok('appearance reset.')] });
     return;
   }
 
   const field = sub === 'pfp' ? 'avatar' : sub;
 
-  if (!fields[field]) {
+  if (!['avatar', 'banner', 'bio'].includes(field)) {
     await message.reply({
       embeds: [no(`usage — \`${prefixChar}customize [avatar|banner|bio|reset]\``)],
       allowedMentions: { parse: [] },
@@ -167,11 +207,18 @@ export async function prefix(message, args) {
     return;
   }
 
-  if (field !== 'bio' && !isUrl(input)) {
+  if (field === 'bio') {
+    await setBio(message.guild.id, input.slice(0, maxBio));
+    await message.reply({ embeds: [ok('bio updated.')] });
+    return;
+  }
+
+  if (!isUrl(input)) {
     await message.reply({ embeds: [no(`${field} needs a direct image link.`)] });
     return;
   }
 
-  await set(message.guild.id, { [field]: input.slice(0, fields[field].max) });
-  await message.reply({ embeds: [ok(`${field} updated.`)] });
+  const applied = await apply(message.client, field, input);
+
+  await message.reply({ embeds: [applied === true ? ok(`${field} updated.`) : no(applied)] });
 }

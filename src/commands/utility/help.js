@@ -4,7 +4,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { get as appearance } from '../../lib/appearance.js';
+import { bio as appearance } from '../../lib/appearance.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { block, entry, panel } from '../../lib/theme.js';
 
@@ -57,7 +57,7 @@ function build(client, selected = home, look = null) {
       : undefined,
   });
 
-  const avatar = look?.avatar || client.user?.displayAvatarURL({ size: 256 });
+  const avatar = client.user?.displayAvatarURL({ size: 256 });
   if (avatar) embed.setThumbnail(avatar);
 
   const menu = new StringSelectMenuBuilder()
