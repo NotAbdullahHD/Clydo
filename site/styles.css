@@ -1222,6 +1222,15 @@ h2 {
 .cube i:nth-child(5) { transform: rotateX(90deg) translateZ(28px); }
 .cube i:nth-child(6) { transform: rotateX(-90deg) translateZ(28px); }
 
+/* one shade per face, or a spinning cube reads as a flat square */
+.cube i:nth-child(odd) {
+  background: linear-gradient(155deg, rgba(160, 141, 198, 0.44), rgba(141, 123, 180, 0.08));
+}
+
+.cube i:nth-child(3n) {
+  background: linear-gradient(200deg, rgba(74, 60, 104, 0.52), rgba(26, 21, 38, 0.24));
+}
+
 @keyframes spin {
   from { transform: rotateX(-18deg) rotateY(22deg); }
   to { transform: rotateX(342deg) rotateY(382deg); }

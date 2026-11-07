@@ -13,3 +13,6 @@ data/
 # landing page build artifact
 slink-site.zip
 .preview-site.mjs
+
+# screenshots are review artefacts, not site source
+screenshot*.png
