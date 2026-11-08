@@ -22,6 +22,7 @@ import { migrate as migrateJson } from './lib/import-json.js';
 import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
+import { options as mobileOptions } from './lib/mobile.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { watch as watchAutomod } from './lib/automod.js';
 import { watch as watchLogging } from './lib/logging.js';
@@ -125,8 +126,13 @@ if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
 if (membersIntent) intents.push(GatewayIntentBits.GuildMembers);
 if (messageIntent) intents.push(GatewayIntentBits.MessageContent);
 
+// the badge is an identify property, so it is set inside the strategy hook,
+// before the first shard opens a session.
+const mobile = await mobileOptions(process.env.MOBILE_STATUS);
+
 const client = new Client({
   intents,
+  ...(mobile.ws ? { ws: mobile.ws } : {}),
   /** reactions on old messages arrive partial, so they need fetching. */
   partials: [Partials.Message, Partials.Reaction, Partials.Channel],
 });
@@ -224,6 +230,11 @@ client.once(Events.ClientReady, async (ready) => {
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
   log(membersIntent ? 'members intent: on.' : 'members intent: off — welcome, autoroles and member logs wait for it.');
   log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
+  log(mobile.status?.error
+    ? `mobile status: ${mobile.status.platform} requested but the gateway could not be patched — ${mobile.status.error}.`
+    : mobile.status
+      ? `mobile status: ${mobile.status.platform} (${mobile.status.properties.os} · ${mobile.status.properties.browser}).`
+      : 'mobile status: off.');
   log(`prefix: ${prefix}`);
 
   if (!messageIntent) {
