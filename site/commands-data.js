@@ -422,7 +422,7 @@ window.COMMANDS = [
   "name": "embed",
   "category": "utility",
   "usage": ",embed <json>",
-  "about": "post an embed built on the site. the slash version takes a channel and needs no code fence.",
+  "about": "post an embed or a components v2 container built on the site.",
   "aliases": []
  },
  {

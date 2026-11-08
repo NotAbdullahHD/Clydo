@@ -40,8 +40,14 @@
       <h1 class="rise" style="--d: 50ms">embed builder</h1>
       <p class="lede rise" style="--d: 100ms; margin-left: 0">
         write it here, watch it land in the preview, copy the json. slink takes it as-is —
-        <code class="kbd">/embed</code> drops it in the channel, or point it at another one.
+        <code class="kbd">/embed</code> posts an embed, or a components v2 container with the accent rail.
       </p>
+    </div>
+
+    <div class="mode-row rise" style="--d: 140ms">
+      <span>output</span>
+      <button class="mini" data-mode="embed" type="button" aria-pressed="true">embed</button>
+      <button class="mini" data-mode="v2" type="button" aria-pressed="false">components v2</button>
     </div>
 
     <div class="builder">
@@ -129,9 +135,9 @@
 
         <pre class="json" id="json"></pre>
 
-        <p class="counter" style="text-align: left; line-height: 1.7">
-          this is the shape slink takes — colour is an int, fields keep their inline flag.
-          paste it into <code class="kbd">/embed</code>; the 6000 character budget is the whole limit.
+        <p class="counter" id="hint" style="text-align: left; line-height: 1.7">
+          an embed: colour is an int, fields keep their inline flag. paste it into
+          <code class="kbd">/embed</code> — 6000 characters for the whole thing.
         </p>
       </div>
 

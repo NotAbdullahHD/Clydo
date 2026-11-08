@@ -3,7 +3,7 @@ import { done, ephemeral, oops } from '../../lib/line.js';
 import { prefix as marker } from '../../lib/prefix.js';
 
 /**
- * `/embed <json>` — post an embed built on slink's site, untouched.
+ * `/embed <json>` — post an embed or a components v2 container, untouched.
  *
  * the builder emits discord's own shape, so this takes it as it comes and only
  * refuses what discord would refuse anyway: a sentence here beats a 400 from
@@ -14,7 +14,7 @@ export const name = 'embed';
 
 export const data = new SlashCommandBuilder()
   .setName('embed')
-  .setDescription('post an embed from json')
+  .setDescription('post an embed or a components v2 container from json')
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
   .addStringOption((option) => option
     .setName('json')
@@ -25,10 +25,7 @@ export const data = new SlashCommandBuilder()
     .setName('channel')
     .setDescription('where it goes — this channel if left alone'));
 
-const limits = [
-  ['title', 256],
-  ['description', 4096],
-];
+const V2 = MessageFlags.IsComponentsV2;
 
 const fence = (text) => String(text ?? '')
   .trim()
@@ -36,7 +33,7 @@ const fence = (text) => String(text ?? '')
   .replace(/```\s*$/, '')
   .trim();
 
-/** everything discord would reject, said in one line. */
+/** everything discord would reject in an embed, said in one line. */
 function inspect({ data: embed }) {
   const strings = [
     ['title', embed.title, 256],
@@ -78,7 +75,51 @@ function inspect({ data: embed }) {
   return null;
 }
 
-/** bare embed, `{ "embeds": [ … ] }`, or an array — all of them from the builder. */
+/** the container the builder emits — 10 text, 14 rule, 9 section, 11 thumb, 17 box. */
+function inspectV2(components) {
+  if (!Array.isArray(components) || !components.length) return 'that json has no components.';
+  if (components.length > 10) return `that is ${components.length} top-level components — discord takes 10.`;
+
+  const allowed = new Set([1, 9, 10, 11, 12, 13, 14, 17]);
+  let count = 0;
+  let problem = null;
+
+  const walk = (node) => {
+    if (problem || !node || typeof node !== 'object') return;
+
+    count += 1;
+
+    if (!allowed.has(node.type)) {
+      problem = `component type ${node.type} is not something a message can hold.`;
+      return;
+    }
+
+    if (node.type === 10 && typeof node.content === 'string' && node.content.length > 4000) {
+      problem = `one text block is ${node.content.length}/4000 characters.`;
+      return;
+    }
+
+    if (node.type === 17 && typeof node.accent_color === 'string') {
+      const hex = node.accent_color.trim().replace('#', '');
+      if (/^[0-9a-f]{6}$/i.test(hex)) node.accent_color = parseInt(hex, 16);
+    }
+
+    if (Array.isArray(node.components)) node.components.forEach(walk);
+    if (node.accessory) walk(node.accessory);
+  };
+
+  components.forEach(walk);
+
+  if (problem) return problem;
+  if (count > 40) return `that is ${count} components — discord takes 40.`;
+
+  return null;
+}
+
+/**
+ * bare embed, `{ "embeds": [ … ] }`, an array, or a components v2 payload —
+ * all of them come out of the builder.
+ */
 function parse(text) {
   const body = fence(text);
 
@@ -99,6 +140,15 @@ function parse(text) {
     return { problem: 'that json does not hold an embed.' };
   }
 
+  if (Array.isArray(raw.components)) {
+    const problem = inspectV2(raw.components);
+    if (problem) return { problem };
+
+    return {
+      payload: { components: raw.components, flags: V2, allowedMentions: { parse: [] } },
+    };
+  }
+
   // the builder emits an int, but a hex from anywhere else is fine too.
   if (typeof raw.color === 'string' && /^#?[0-9a-f]{6}$/i.test(raw.color.trim())) {
     raw.color = parseInt(raw.color.trim().replace('#', ''), 16);
@@ -113,11 +163,13 @@ function parse(text) {
   }
 
   const problem = inspect(embed);
-  return problem ? { problem } : { embed };
+  return problem
+    ? { problem }
+    : { payload: { embeds: [embed], allowedMentions: { parse: [] } } };
 }
 
 /** null when the channel cannot take a message from slink. */
-async function place(guild, channel, embed) {
+async function place(guild, channel, payload) {
   const target = channel?.isTextBased?.()
     ? channel
     : await guild?.channels?.fetch(channel?.id).catch(() => null) ?? null;
@@ -125,16 +177,16 @@ async function place(guild, channel, embed) {
   if (!target?.isTextBased?.()) return null;
   if (!target.permissionsFor(guild.members.me)?.has(PermissionFlagsBits.SendMessages)) return null;
 
-  await target.send({ embeds: [embed], allowedMentions: { parse: [] } });
+  await target.send(payload);
 
   return target;
 }
 
 export async function execute(interaction) {
-  const { embed, problem } = parse(interaction.options.getString('json'));
+  const { payload, problem } = parse(interaction.options.getString('json'));
 
-  if (problem) {
-    await interaction.reply(ephemeral(oops(problem)));
+  if (problem || !payload) {
+    await interaction.reply(ephemeral(oops(problem ?? 'that json does not hold an embed.')));
     return;
   }
 
@@ -142,7 +194,7 @@ export async function execute(interaction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  const target = await place(interaction.guild, channel, embed);
+  const target = await place(interaction.guild, channel, payload);
 
   await interaction.editReply(
     target ? done(interaction, `posted in <#${target.id}>.`) : oops('i cannot post in that channel.'),
@@ -161,12 +213,12 @@ export async function prefix(message, args) {
     .trim()
     .replace(/^\S+\s*/, '');
 
-  const { embed, problem } = parse(raw || args.join(' '));
+  const { payload, problem } = parse(raw || args.join(' '));
 
-  if (problem || !embed) {
+  if (problem || !payload) {
     await message.reply(oops(problem ?? 'that json does not hold an embed.'));
     return;
   }
 
-  await message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
+  await message.reply(payload);
 }

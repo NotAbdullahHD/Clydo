@@ -1,12 +1,18 @@
-/* /home */
+/* /embeds */
 
 const form = document.querySelector('#builder');
 const preview = document.querySelector('#preview');
 const output = document.querySelector('#json');
 const thumb = document.querySelector('#thumb');
 const image = document.querySelector('#thumb-img');
+const hint = document.querySelector('#hint');
 
 const limits = { author: 256, title: 256, desc: 4096, footer: 2048, field: 256, value: 1024 };
+
+/* which shape the copy button hands over: discord's classic embed, or a
+   components v2 container. /embed takes either — the container is the one that
+   keeps the accent rail and the section thumbnail. */
+let mode = 'embed';
 
 const read = (id) => document.querySelector(`#${id}`)?.value ?? '';
 
@@ -38,20 +44,60 @@ const data = () => {
   return payload;
 };
 
+/* the same content as one container: heading, rule, body, fields, footer.
+   type 17 is the container, 10 a text block, 14 a divider, 9 a section, 11 its
+   thumbnail — and 32768 is the flag that says this message is components v2. */
+const container = () => {
+  const payload = data();
+  const blocks = [];
+  const heading = [
+    payload.title ? `## ${payload.title}` : '',
+    payload.author ? `-# ${payload.author.name}` : '',
+  ].filter(Boolean).join('\n');
+
+  if (heading) {
+    if (payload.thumbnail) {
+      blocks.push({
+        type: 9,
+        components: [{ type: 10, content: heading }],
+        accessory: { type: 11, media: { url: payload.thumbnail.url } },
+      });
+    } else {
+      blocks.push({ type: 10, content: heading });
+    }
+  }
+
+  if (payload.description) {
+    if (blocks.length) blocks.push({ type: 14, divider: true, spacing: 1 });
+    blocks.push({ type: 10, content: payload.description });
+  }
+
+  if (payload.fields?.length) {
+    blocks.push({
+      type: 10,
+      content: payload.fields
+        .map((field) => `**${field.name || 'field'}**\n${field.value}`)
+        .join('\n\n'),
+    });
+  }
+
+  if (payload.footer) blocks.push({ type: 10, content: `-# ${payload.footer.text}` });
+
+  return {
+    flags: 32768,
+    components: [{ type: 17, accent_color: payload.color, components: blocks }],
+  };
+};
+
 const escape = (value) => String(value).replace(/[&<>"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
 }[character]));
 
-const paint = () => {
-  const payload = data();
-  const tint = colour();
-
-  output.textContent = JSON.stringify(payload, null, 2);
-
+const embedHtml = (payload) => {
   const list = payload.fields ?? [];
   const inline = list.length > 0 && list.every((field) => field.inline);
 
-  const body = [
+  return [
     payload.author ? `<div class="emb-author"><img src="assets/pfp.png" alt="">${escape(payload.author.name)}</div>` : '',
     payload.thumbnail ? `<img class="emb-thumb" src="${escape(payload.thumbnail.url)}" alt="">` : '',
     payload.title ? `<div class="emb-title">${escape(payload.title)}</div>` : '',
@@ -62,16 +108,43 @@ const paint = () => {
       : '',
     payload.footer ? `<div class="emb-footer">${escape(payload.footer.text)}</div>` : '',
   ].filter(Boolean).join('');
+};
 
-  preview.innerHTML = body
-    ? `<div class="msg">
+const v2Html = (payload) => {
+  const parts = [
+    payload.title ? `<div class="v2-title">${escape(payload.title)}</div>` : '',
+    payload.author ? `<div class="v2-note">${escape(payload.author.name)}</div>` : '',
+    payload.thumbnail ? `<img class="v2-thumb" src="${escape(payload.thumbnail.url)}" alt="">` : '',
+    payload.description ? `<p class="v2-text">${escape(payload.description)}</p>` : '',
+    ...(payload.fields ?? []).map((field) => `
+      <div class="v2-field"><strong>${escape(field.name)}</strong><span>${escape(field.value)}</span></div>`),
+    payload.footer ? `<div class="v2-note">${escape(payload.footer.text)}</div>` : '',
+  ].filter(Boolean).join('');
+
+  return `<div class="v2" style="--c:${colour()}">${parts}</div>`;
+};
+
+const frame = (inner) => `<div class="msg">
          <img class="msg-avatar" src="assets/pfp.png" alt="">
          <div class="msg-body">
            <div class="msg-meta"><span>slink</span><span class="badge">app</span><time>preview</time></div>
-           <div class="emb" style="--c:${tint}">${body}</div>
+           ${inner}
          </div>
-       </div>`
-    : '<p class="preview-empty">nothing yet — a title or a description is enough to start.</p>';
+       </div>`;
+
+const paint = () => {
+  const payload = data();
+  const list = payload.fields ?? [];
+
+  output.textContent = JSON.stringify(mode === 'v2' ? container() : payload, null, 2);
+
+  const empty = !payload.title && !payload.description && !list.length;
+
+  preview.innerHTML = empty
+    ? '<p class="preview-empty">nothing yet — a title or a description is enough to start.</p>'
+    : frame(mode === 'v2'
+      ? v2Html(payload)
+      : `<div class="emb" style="--c:${colour()}">${embedHtml(payload)}</div>`);
 
   if (image) {
     const url = read('thumb').trim();
@@ -95,6 +168,24 @@ const paint = () => {
 
 form?.addEventListener('input', paint);
 form?.addEventListener('change', paint);
+
+document.querySelectorAll('[data-mode]').forEach((button) => {
+  button.addEventListener('click', () => {
+    mode = button.dataset.mode;
+
+    document.querySelectorAll('[data-mode]').forEach((other) => {
+      other.setAttribute('aria-pressed', String(other === button));
+    });
+
+    if (hint) {
+      hint.textContent = mode === 'v2'
+        ? 'a container: once pasted into /embed it keeps this accent rail and posts as one message. 4000 characters per text block, 40 components in all.'
+        : 'an embed: colour is an int, fields keep their inline flag. paste it into /embed — 6000 characters for the whole thing.';
+    }
+
+    paint();
+  });
+});
 
 document.querySelector('#add-field')?.addEventListener('click', () => {
   const count = document.querySelectorAll('.field-block').length;
