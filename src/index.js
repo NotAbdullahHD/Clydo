@@ -119,6 +119,8 @@ const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMessageReactions,
+  // voice state is not privileged — the voice log is free once it is asked for.
+  GatewayIntentBits.GuildVoiceStates,
 ];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
 if (membersIntent) intents.push(GatewayIntentBits.GuildMembers);

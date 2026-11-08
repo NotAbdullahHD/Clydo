@@ -1,4 +1,5 @@
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { shape } from '../../lib/bridge.js';
 import { facts, heading, payload, rule, shell, simple } from '../../lib/card.js';
 import { confirm } from '../../lib/confirm.js';
 import { set } from '../../lib/config.js';
@@ -11,6 +12,24 @@ import { palette } from '../../lib/theme.js';
 
 export const name = 'ticket';
 export const names = ['tickets', 'support'];
+
+/** closing is for the member who opened the thread too, so no default permission. */
+export const data = new SlashCommandBuilder()
+  .setName('ticket')
+  .setDescription('one panel, private threads')
+  .addSubcommand((sub) => sub
+    .setName('setup')
+    .setDescription('post the panel')
+    .addChannelOption((option) => option.setName('channel').setDescription('where the panel goes')))
+  .addSubcommand((sub) => sub.setName('close').setDescription('close this ticket thread'))
+  .addSubcommand((sub) => sub.setName('off').setDescription('take the panel down'));
+
+export async function execute(interaction) {
+  const sub = interaction.options.getSubcommand();
+  const channel = interaction.options.getChannel('channel');
+
+  await prefix(shape(interaction, [sub], { channel }), [sub]);
+}
 
 async function status(message) {
   const state = settings(message.guild.id);

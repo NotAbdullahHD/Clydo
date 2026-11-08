@@ -1,4 +1,5 @@
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { shape } from '../../lib/bridge.js';
 import { facts, heading, payload, quiet, rule, shell, simple } from '../../lib/card.js';
 import { set } from '../../lib/config.js';
 import { blank, settings } from '../../lib/automod.js';
@@ -11,6 +12,31 @@ import { palette } from '../../lib/theme.js';
 export const name = 'automod';
 
 const rules = ['invites', 'spam', 'caps'];
+
+export const data = new SlashCommandBuilder()
+  .setName('automod')
+  .setDescription('invites, spam and caps')
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+  .addSubcommand((sub) => sub.setName('on').setDescription('turn all three filters on'))
+  .addSubcommand((sub) => sub.setName('off').setDescription('turn all three filters off'))
+  .addSubcommand((sub) => sub
+    .setName('filter')
+    .setDescription('one filter at a time')
+    .addStringOption((option) => option
+      .setName('filter')
+      .setDescription('which one')
+      .setRequired(true)
+      .addChoices(...rules.map((rule) => ({ name: rule, value: rule }))))
+    .addBooleanOption((option) => option.setName('on').setDescription('on or off').setRequired(true)));
+
+export async function execute(interaction) {
+  const sub = interaction.options.getSubcommand();
+  const args = sub === 'filter'
+    ? [interaction.options.getString('filter'), interaction.options.getBoolean('on') ? 'on' : 'off']
+    : [sub];
+
+  await prefix(shape(interaction, args), args);
+}
 
 async function status(message) {
   const state = settings(message.guild.id);

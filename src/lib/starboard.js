@@ -1,22 +1,50 @@
-import { Events } from 'discord.js';
-import { heading, payload, picture, quiet, rule, shell, text } from './card.js';
-import { cached } from './config.js';
+import { Events, MediaGalleryBuilder, SectionBuilder, ThumbnailBuilder } from 'discord.js';
+import { payload, quiet, rule, shell, text } from './card.js';
+import { cached, set } from './config.js';
 import { sql } from './sqlite.js';
 
 /**
  * starboard.
  *
- * when a message collects enough of one emoji, it is copied into the starboard
- * channel once. the copy links back, keeps the face and the words, and leaves
- * again if the reactions fall below the threshold.
+ * a message that collects enough of one emoji is copied into the starboard
+ * channel once: the count, the face, the words, the attachment, and the way
+ * back. channels, roles and members can be told to never count, and the copy
+ * leaves again when the reactions fall below the threshold.
  */
 
 const key = 'starboard';
 
-export const blank = () => ({ channelId: null, threshold: 3, emoji: '⭐' });
+export const blank = () => ({
+  channelId: null,
+  threshold: 3,
+  emoji: '⭐',
+  ignore: { channels: [], roles: [], members: [] },
+  options: { attachments: true, timestamp: true, jump: true, selfStar: false },
+});
 
 export function settings(guildId) {
-  return { ...blank(), ...(cached(guildId, key) ?? {}) };
+  const saved = cached(guildId, key) ?? {};
+  const base = blank();
+
+  return {
+    ...base,
+    ...saved,
+    ignore: { ...base.ignore, ...(saved.ignore ?? {}) },
+    options: { ...base.options, ...(saved.options ?? {}) },
+  };
+}
+
+export const save = (guildId, change) => set(guildId, key, { ...settings(guildId), ...change });
+
+/** `⭐` and `⭐️` are the same emoji; discord sends both. */
+export const norm = (value) => String(value ?? '').replace(/\uFE0F/g, '');
+
+/** a unicode name, a custom id, or a stored string all compare here. */
+export function matches(emoji, wanted) {
+  if (!emoji || !wanted) return false;
+  if (emoji.id && emoji.id === wanted) return true;
+
+  return norm(emoji.name ?? emoji) === norm(wanted);
 }
 
 /** the board message already posted for one message, if any. */
@@ -45,60 +73,146 @@ export function forget(guildId, messageId) {
   return boardId;
 }
 
-const countOf = (message, emoji) => {
-  const entry = [...message.reactions.cache.values()].find(
-    (reaction) => (reaction.emoji.id ?? reaction.emoji.name) === emoji || reaction.emoji.name === emoji,
-  );
+/** flip one channel, role or member in the ignore list. */
+export function toggleIgnore(guildId, { channelId = null, roleId = null, memberId = null }) {
+  const state = settings(guildId);
+  const list = channelId ? 'channels' : roleId ? 'roles' : 'members';
+  const id = channelId ?? roleId ?? memberId;
+  if (!id) return null;
 
-  return entry?.count ?? 0;
+  const has = state.ignore[list].includes(id);
+  const next = has
+    ? state.ignore[list].filter((value) => value !== id)
+    : [...state.ignore[list], id];
+
+  save(guildId, { ignore: { ...state.ignore, [list]: next } });
+
+  return {
+    on: !has,
+    label: channelId ? `<#${id}>` : roleId ? `<@&${id}>` : labelOfMember(id),
+    list,
+  };
+}
+
+const labelOfMember = (id) => `<@${id}>`;
+
+const ignored = (message, state) => {
+  const lists = state.ignore;
+
+  if (lists.channels.includes(message.channelId)) return true;
+  if (message.channel?.parentId && lists.channels.includes(message.channel.parentId)) return true;
+  if (lists.members.includes(message.author?.id)) return true;
+  if (lists.roles.length && message.member?.roles?.cache?.some((role) => lists.roles.includes(role.id))) {
+    return true;
+  }
+
+  return false;
 };
 
-const cut = (value, size = 600) => {
+const countOf = (message, wanted, allowSelf) => {
+  const entry = [...message.reactions.cache.values()].find((reaction) => matches(reaction.emoji, wanted));
+  if (!entry) return 0;
+
+  let count = entry.count ?? 0;
+  if (!allowSelf && message.author?.id && entry.users?.cache?.has(message.author.id)) count -= 1;
+
+  return Math.max(0, count);
+};
+
+const cut = (value, size = 900) => {
   const body = String(value ?? '').trim();
   return body.length > size ? `${body.slice(0, size - 1)}…` : body;
 };
 
-function card(message, emoji, count) {
+const stamp = (ms) => `<t:${Math.floor(ms / 1000)}:f>`;
+
+/** images and video load in the card; everything else is a link with its name. */
+function media(message, state) {
+  const files = [...(message.attachments?.values?.() ?? [])];
+  if (!files.length) return { gallery: [], links: [] };
+
+  if (!state.options.attachments) {
+    return { gallery: [], links: files.slice(0, 5).map((file) => `[${file.name}](${file.url})`) };
+  }
+
+  const gallery = files
+    .filter((file) => /^(image|video)\//.test(file.contentType ?? ''))
+    .slice(0, 4)
+    .map((file) => ({ media: { url: file.url } }));
+
+  const links = files
+    .filter((file) => !/^(image|video)\//.test(file.contentType ?? ''))
+    .slice(0, 5)
+    .map((file) => `[${file.name}](${file.url})`);
+
+  return { gallery, links };
+}
+
+export function card(message, state, count) {
   const box = shell();
-  heading(box, {
-    title: 'starboard',
-    note: `${message.author?.username ?? 'someone'} · #${message.channel?.name ?? 'channel'} · ${count} ${emoji}`,
-  });
+  const author = message.author;
+
+  box.addTextDisplayComponents(text(`${state.emoji} **${count}**`));
   box.addSeparatorComponents(rule());
 
-  box.addTextDisplayComponents(text(cut(message.content) || 'no text — just the attachment.'));
+  const face = author?.displayAvatarURL?.({ size: 128 });
 
-  const image = message.attachments?.find?.((file) => file.contentType?.startsWith('image/'));
-  if (image) picture(box, image.url);
+  if (face) {
+    box.addSectionComponents(
+      new SectionBuilder()
+        .addTextDisplayComponents(text(`**${author.username}**`))
+        .setThumbnailAccessory(new ThumbnailBuilder().setURL(face)),
+    );
+  } else {
+    box.addTextDisplayComponents(text(`**${author?.username ?? 'someone'}**`));
+  }
 
-  box.addTextDisplayComponents(quiet(`[jump to the message](${message.url})`));
+  const body = cut(message.content);
+  if (body) box.addTextDisplayComponents(text(body));
+
+  const { gallery, links } = media(message, state);
+  if (gallery.length) box.addMediaGalleryComponents(new MediaGalleryBuilder().addItems(...gallery));
+  if (!body && links.length) box.addTextDisplayComponents(text(links.join('\n')));
+  else if (links.length) box.addTextDisplayComponents(quiet(links.join(' · ')));
+
+  box.addTextDisplayComponents(text(`<#${message.channelId}>`));
+  if (state.options.jump) box.addTextDisplayComponents(text(`[jump to message](${message.url})`));
+  if (state.options.timestamp) box.addTextDisplayComponents(quiet(stamp(message.createdTimestamp)));
 
   return payload(box);
 }
 
 export function watch(client) {
-  const resolveBoard = async (message, state) => message.guild?.channels.cache.get(state.channelId)
-    ?? message.guild?.channels.fetch(state.channelId).catch(() => null);
+  const resolveBoard = async (guild, state) => guild.channels.cache.get(state.channelId)
+    ?? guild.channels.fetch(state.channelId).catch(() => null);
 
-  client.on(Events.MessageReactionAdd, async (reaction) => {
+  const guildOf = async (message) => message.guild
+    ?? (message.guildId ? message.client.guilds.fetch(message.guildId).catch(() => null) : null);
+
+  client.on(Events.MessageReactionAdd, async (reaction, user) => {
     try {
       if (reaction.partial) await reaction.fetch().catch(() => null);
 
       const message = reaction.message;
       if (!message?.guildId || message.author?.bot) return;
+      if (user?.bot) return;
 
       const state = settings(message.guildId);
       if (!state.channelId) return;
       if (message.channelId === state.channelId) return;
+      if (ignored(message, state)) return;
 
-      const count = countOf(message, state.emoji);
+      const count = countOf(message, state.emoji, state.options.selfStar);
       if (count < state.threshold) return;
       if (posted(message.guildId, message.id)) return;
 
-      const channel = await resolveBoard(message, state);
+      const guild = await guildOf(message);
+      if (!guild) return;
+
+      const channel = await resolveBoard(guild, state);
       if (!channel?.isTextBased?.()) return;
 
-      const sent = await channel.send({ ...card(message, state.emoji, count), allowedMentions: { parse: [] } });
+      const sent = await channel.send({ ...card(message, state, count), allowedMentions: { parse: [] } });
       remember(message.guildId, message.id, sent.id);
     } catch (error) {
       console.warn('[slink] starboard skipped —', error?.message ?? error);
@@ -116,12 +230,13 @@ export function watch(client) {
       const boardId = posted(message.guildId, message.id);
       if (!boardId) return;
 
-      const count = countOf(message, state.emoji);
+      const count = countOf(message, state.emoji, true);
       if (count >= state.threshold) return;
 
       forget(message.guildId, message.id);
 
-      const channel = await resolveBoard(message, state);
+      const guild = await guildOf(message);
+      const channel = guild ? await resolveBoard(guild, state) : null;
       const board = channel?.messages
         ? await channel.messages.fetch(boardId).catch(() => null)
         : null;

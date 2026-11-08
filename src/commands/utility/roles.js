@@ -1,7 +1,9 @@
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { shape } from '../../lib/bridge.js';
 import { facts, heading, listing, payload, quiet, rule, shell, simple } from '../../lib/card.js';
 import { patch } from '../../lib/config.js';
-import { emojiKey, limit, settings } from '../../lib/roles.js';
+import { oops } from '../../lib/line.js';
+import { blocker, emojiKey, limit, settings } from '../../lib/roles.js';
 import { palette } from '../../lib/theme.js';
 
 /**
@@ -10,6 +12,57 @@ import { palette } from '../../lib/theme.js';
 
 export const name = 'roles';
 export const names = ['autorole', 'reactionrole'];
+
+export const data = new SlashCommandBuilder()
+  .setName('roles')
+  .setDescription('roles on join, and roles from a reaction')
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+  .addSubcommandGroup((group) => group
+    .setName('autorole')
+    .setDescription('roles every new member gets')
+    .addSubcommand((sub) => sub
+      .setName('add')
+      .setDescription('give a role on join')
+      .addRoleOption((option) => option.setName('role').setDescription('the role').setRequired(true)))
+    .addSubcommand((sub) => sub
+      .setName('remove')
+      .setDescription('stop giving a role on join')
+      .addRoleOption((option) => option.setName('role').setDescription('the role').setRequired(true)))
+    .addSubcommand((sub) => sub.setName('clear').setDescription('clear the whole autorole list')))
+  .addSubcommandGroup((group) => group
+    .setName('reaction')
+    .setDescription('roles from a reaction on a message')
+    .addSubcommand((sub) => sub
+      .setName('add')
+      .setDescription('bind an emoji to a role')
+      .addStringOption((option) => option.setName('message').setDescription('message link or id').setRequired(true))
+      .addStringOption((option) => option.setName('emoji').setDescription('the reaction').setRequired(true))
+      .addRoleOption((option) => option.setName('role').setDescription('the role').setRequired(true)))
+    .addSubcommand((sub) => sub
+      .setName('remove')
+      .setDescription('unbind an emoji')
+      .addStringOption((option) => option.setName('message').setDescription('message link or id').setRequired(true))
+      .addStringOption((option) => option.setName('emoji').setDescription('the reaction').setRequired(true))));
+
+export async function execute(interaction) {
+  const group = interaction.options.getSubcommandGroup();
+  const sub = interaction.options.getSubcommand();
+  const role = interaction.options.getRole('role');
+
+  if (group === 'autorole') {
+    const args = sub === 'clear' ? ['auto', 'off'] : ['auto', sub];
+    await prefix(shape(interaction, args, { role }), args);
+    return;
+  }
+
+  const message = interaction.options.getString('message');
+  const emoji = interaction.options.getString('emoji');
+  const args = sub === 'remove'
+    ? ['reaction', 'remove', message, emoji]
+    : ['reaction', message, emoji];
+
+  await prefix(shape(interaction, args, { role }), args);
+}
 
 const usage = 'usage — `,roles auto @role`, `,roles auto remove @role`, `,roles auto off`, `,roles reaction <message> <emoji> @role`, `,roles reaction remove <message> <emoji>`';
 
@@ -127,6 +180,13 @@ export async function prefix(message, args) {
 
     if (!target) {
       await message.reply(simple({ accent: palette.bad, title: 'roles', message: 'i cannot see that message in this channel.' }));
+      return;
+    }
+
+    // say now what would otherwise look like the feature being broken later.
+    const problem = await blocker(message.guild, role.id);
+    if (problem) {
+      await message.reply(oops(problem));
       return;
     }
 
