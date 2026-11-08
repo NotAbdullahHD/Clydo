@@ -34,30 +34,35 @@ function grouped(client) {
   return map;
 }
 
-function build(client, selected = home, look = null) {
+export function build(client, selected = home, look = null) {
   const modules = grouped(client);
   const total = client.commands.size;
+  const list = [...(modules.get(selected) ?? [])].sort();
 
+  // a module listing is a menu, not a manual: names only, one wrapped line of
+  // them. anyone who wants a description asks for that one command.
   const description = selected === home
     ? ['a quiet discord bot: reactions that earn sobs, a few games, and the usual moderation.', look?.bio]
       .filter(Boolean).join('\n\n')
-    : block(...(modules.get(selected) ?? []).sort()
-      .map((name) => entry(name, describe(client.commands.get(name)))));
+    : list.map((name) => `\`${name}\``).join('  ');
 
   const embed = panel({
-    title: selected === home ? 'slink help' : `slink help — ${selected}`,
+    title: selected === home ? 'slink help' : `slink help — ${selected} (${list.length})`,
     description,
-    fields: [
-      { name: 'prefix', value: `\`${prefixChar}\``, inline: true },
-      { name: 'commands', value: `\`${total}\``, inline: true },
-      { name: 'modules', value: `\`${modules.size}\``, inline: true },
-    ],
+    fields: selected === home
+      ? [
+        { name: 'prefix', value: `\`${prefixChar}\``, inline: true },
+        { name: 'commands', value: `\`${total}\``, inline: true },
+        { name: 'modules', value: `\`${modules.size}\``, inline: true },
+      ]
+      : [],
     footer: selected === home
       ? `use ${prefixChar}help <command> for details on a specific command`
-      : undefined,
+      : `use ${prefixChar}help <command> for one line about it`,
   });
 
-  const avatar = client.user?.displayAvatarURL({ size: 256 });
+  // the avatar is identity, not decoration — home only.
+  const avatar = selected === home ? client.user?.displayAvatarURL({ size: 256 }) : null;
   if (avatar) embed.setThumbnail(avatar);
 
   const menu = new StringSelectMenuBuilder()

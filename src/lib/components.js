@@ -47,9 +47,10 @@ const TEXT_BUDGET = 3800;
 const COMPONENT_BUDGET = 38;
 const CONTAINER_BUDGET = 5;
 
-/** status colours keep their meaning; everything else gets the signature rail. */
+/** status colours keep their meaning; everything else stays panel grey, because
+ * a rail on every card is decoration, and slink does not decorate. */
 const statuses = new Set([palette.good, palette.bad, palette.warn]);
-const accentFor = (color) => (statuses.has(color) ? color : palette.accent);
+const accentFor = (color) => (statuses.has(color) ? color : palette.panel);
 
 /** accept an EmbedBuilder, an APIEmbed or a bare object. */
 function dataOf(embed) {
@@ -179,7 +180,23 @@ function keepCards(target, rows) {
  * and the payload only changes components or text, the existing cards are
  * preserved instead of being dropped.
  */
-export function convert(input, { target = null } = {}) {
+/** a card for a reply that carried nothing but a sentence. */
+function cardFromText(value) {
+  const budget = { chars: 0, components: 1 };
+  const text = makeText(value, budget);
+  if (!text) return null;
+
+  return new ContainerBuilder().setAccentColor(accentFor()).addTextDisplayComponents(text);
+}
+
+export function convert(input, { target = null, fresh = true } = {}) {
+  // bare strings are replies too; without this the bot still sends legacy
+  // messages for every one-line answer and the look is half converted.
+  if (typeof input === 'string') {
+    const card = fresh ? cardFromText(input) : null;
+    return card ? { components: [card], flags: V2 } : input;
+  }
+
   if (!input || typeof input !== 'object' || input.raw) return input;
 
   const embeds = Array.isArray(input.embeds) ? input.embeds.filter(Boolean) : [];
@@ -187,8 +204,8 @@ export function convert(input, { target = null } = {}) {
   const rows = Array.isArray(input.components) ? input.components.filter(Boolean) : [];
   const editing = isV2(target);
 
-  if (!embeds.length && !(content && editing)) {
-    if (editing && !content && input.components) {
+  if (!content && !embeds.length) {
+    if (editing && input.components) {
       const cards = keepCards(target, rows);
       if (cards) {
         const { components: _old, ...rest } = input;
@@ -198,6 +215,10 @@ export function convert(input, { target = null } = {}) {
 
     return input;
   }
+
+  // edits only convert when the message is already a card or the edit carries
+  // an embed; old messages keep the surface they were sent with.
+  if (!embeds.length && !fresh && !editing) return input;
 
   const budget = { chars: 0, components: 0 };
   const cards = [];
@@ -212,12 +233,12 @@ export function convert(input, { target = null } = {}) {
 
     if (text) {
       if (cards.length) cards[0].spliceComponents(0, 0, text);
-      else cards.push(new ContainerBuilder().setAccentColor(palette.accent).addTextDisplayComponents(text));
+      else cards.push(new ContainerBuilder().setAccentColor(accentFor()).addTextDisplayComponents(text));
     }
   }
 
   if (rows.length) {
-    if (!cards.length) cards.push(new ContainerBuilder().setAccentColor(palette.accent));
+    if (!cards.length) cards.push(new ContainerBuilder().setAccentColor(accentFor()));
     cards[cards.length - 1].addActionRowComponents(...rows);
   }
 
@@ -282,7 +303,7 @@ export function install() {
     patched.add(original);
 
     const wrapper = function slinkV2(payload, ...rest) {
-      return original.call(this, convert(payload, { target: edits ? this : null }), ...rest);
+      return original.call(this, convert(payload, { target: edits ? this : null, fresh: !edits }), ...rest);
     };
     wrapper.slinkV2 = true;
 
