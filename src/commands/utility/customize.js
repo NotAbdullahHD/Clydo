@@ -9,6 +9,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import { apply, get, reset } from '../../lib/appearance.js';
+import { ask, confirm } from '../../lib/confirm.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { palette } from '../../lib/theme.js';
 
@@ -85,14 +86,24 @@ async function open(message, record) {
     }
 
     if (press.customId === 'customize:reset') {
+      const agreed = await ask(press, {
+        title: 'reset appearance',
+        question: 'clear this server’s avatar, banner and bio?',
+        detail: 'the stock look comes back for everyone here.',
+        yes: 'reset',
+        no: 'keep',
+      });
+
+      if (!agreed) return;
+
       const wiped = await change(message.client, message.guild.id, { avatar: null, banner: null, bio: null });
 
       if (wiped !== true) {
-        await press.reply({ embeds: [no(wiped)], flags: MessageFlags.Ephemeral });
+        await press.followUp({ embeds: [no(wiped)], flags: MessageFlags.Ephemeral });
         return;
       }
 
-      await press.update({ embeds: [card(await get(message.guild.id))], components: [buttons()] });
+      await sent.edit({ embeds: [card(await get(message.guild.id))], components: [buttons()] });
       return;
     }
 
@@ -160,8 +171,16 @@ export async function prefix(message, args) {
   }
 
   if (sub === 'reset' || sub === 'clear') {
-    const wiped = await change(message.client, message.guild.id, { avatar: null, banner: null, bio: null });
-    await message.reply({ embeds: [wiped === true ? ok('appearance reset.') : no(wiped)] });
+    await confirm(message, {
+      title: 'customize',
+      question: 'reset this server’s appearance?',
+      detail: 'avatar, banner and bio go back to the stock look.',
+      yes: 'reset',
+      onConfirm: async (press) => {
+        const wiped = await change(message.client, message.guild.id, { avatar: null, banner: null, bio: null });
+        await press.editReply({ embeds: [wiped === true ? ok('appearance reset.') : no(wiped)] });
+      },
+    });
     return;
   }
 

@@ -1,23 +1,30 @@
-import { card, coin, short, top } from '../../lib/economy.js';
+import { open as pager } from '../../lib/pager.js';
+import { short, top } from '../../lib/economy.js';
 
-/** `,lb` — the ten richest, medal for the top three. */
+/** `,lb` — the richest, ten a page. */
 
 export const name = 'leaderboard';
 export const names = ['lb', 'rich', 'top'];
 
-const shown = 10;
+const pageSize = 10;
+const depth = 500;
 const medals = ['🥇', '🥈', '🥉'];
 
 export async function prefix(message) {
-  const ranked = await top(shown);
+  const ranked = await top(depth);
+  const pages = [];
 
-  const lines = ranked.map((row, index) => {
-    const mark = medals[index] ?? `${index + 1}.`;
-    return `${mark} <@${row.userId}> — ${coin} ${short(row.total)}`;
-  });
+  for (let offset = 0; offset < ranked.length; offset += pageSize) {
+    pages.push(ranked.slice(offset, offset + pageSize).map((row, index) => {
+      const rank = offset + index + 1;
+      return `${medals[rank - 1] ?? `\`${rank}.\``} <@${row.userId}> — **${short(row.total)}**`;
+    }));
+  }
 
-  await message.reply({
-    embeds: [card('🏆 economy leaderboard', lines.length ? lines.join('\n') : 'nobody has any coins yet.')],
-    allowedMentions: { parse: [] },
+  await pager(message, {
+    title: 'economy leaderboard',
+    note: 'wallet and bank together',
+    pages,
+    empty: 'nobody has any coins yet.',
   });
 }

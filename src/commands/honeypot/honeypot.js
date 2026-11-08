@@ -10,6 +10,8 @@ import {
   remove,
   set,
 } from '../../lib/honeypot.js';
+import { simple } from '../../lib/card.js';
+import { confirm } from '../../lib/confirm.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { block, datapoint, panel, palette } from '../../lib/theme.js';
 
@@ -179,8 +181,21 @@ export async function prefix(message, args) {
       return;
     }
 
-    await remove(message.guild, current);
-    await reply(ok('trap disabled and the channel removed.'));
+    await confirm(message, {
+      title: 'honeypot',
+      question: 'disable the trap and delete its channel?',
+      detail: 'the warning, the channel and its counters go with it.',
+      yes: 'disable',
+      onConfirm: async (press) => {
+        await remove(message.guild, current);
+        await press.editReply(simple({
+          accent: palette.good,
+          title: 'honeypot',
+          note: 'disabled',
+          message: 'trap disabled and the channel removed.',
+        }));
+      },
+    });
     return;
   }
 

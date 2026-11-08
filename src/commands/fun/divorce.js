@@ -1,30 +1,41 @@
-import { EmbedBuilder } from 'discord.js';
+import { simple } from '../../lib/card.js';
+import { confirm } from '../../lib/confirm.js';
 import { get, save } from '../../lib/family.js';
+import { palette } from '../../lib/theme.js';
 
-/** `,divorce` — end the marriage for both sides. */
-
-const fail = (desc) => new EmbedBuilder().setColor(0xED4245).setDescription(desc);
+/** `,divorce` — end the marriage for both sides, after asking. */
 
 export const name = 'divorce';
 
 export async function prefix(message) {
   const data = await get(message.author.id);
-  if (!data.partnerId) return message.reply({ embeds: [fail('You are not married.')] });
+
+  if (!data.partnerId) {
+    await message.reply(simple({ accent: palette.bad, title: 'divorce', message: 'you are not married.' }));
+    return;
+  }
 
   const partnerId = data.partnerId;
-  const partnerData = await get(partnerId);
 
-  data.partnerId = null;
-  partnerData.partnerId = null;
-  await save(data);
-  await save(partnerData);
+  await confirm(message, {
+    title: 'divorce',
+    question: `end the marriage with <@${partnerId}>?`,
+    detail: 'both sides lose the partner. nothing else changes.',
+    yes: 'divorce',
+    onConfirm: async (press) => {
+      const mine = await get(message.author.id);
+      const theirs = await get(partnerId);
 
-  await message.reply({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(0xED4245)
-        .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-        .setDescription(`💔 You divorced <@${partnerId}>.`),
-    ],
+      mine.partnerId = null;
+      theirs.partnerId = null;
+
+      await save(mine);
+      await save(theirs);
+
+      await press.editReply({
+        ...simple({ title: 'divorce', note: message.author.username, message: `you divorced <@${partnerId}>.` }),
+        allowedMentions: { parse: [] },
+      });
+    },
   });
 }

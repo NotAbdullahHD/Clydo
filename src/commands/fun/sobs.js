@@ -1,5 +1,6 @@
 import { PermissionFlagsBits } from 'discord.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
+import { open as pager } from '../../lib/pager.js';
 import { addSobs, board, count, setBanned, setEnabled, settings } from '../../lib/sobs.js';
 import { panel } from '../../lib/theme.js';
 
@@ -84,15 +85,23 @@ export async function prefix(message, args) {
   }
 
   if (sub === 'lb' || sub === 'top' || sub === 'list') {
-    const ranked = (await board(guild.id)).slice(0, shown);
+    const ranked = await board(guild.id);
+    const pages = [];
 
-    const description = ranked.length
-      ? ranked
-        .map((entry, index) => `**${index + 1}.** ${guild.members.cache.get(entry.userId)?.user.username ?? `<@${entry.userId}>`} — **${entry.count}** sobs`)
-        .join('\n')
-      : 'nothing counted here yet.';
+    for (let offset = 0; offset < ranked.length; offset += shown) {
+      pages.push(ranked.slice(offset, offset + shown).map((row, index) => {
+        const rank = offset + index + 1;
+        const who = guild.members.cache.get(row.userId)?.user.username ?? `<@${row.userId}>`;
+        return `\`${rank}.\` ${who} — **${row.count}** sobs`;
+      }));
+    }
 
-    await message.reply({ embeds: [panel({ title: 'sobs', description, footer: 'raw sorrow. no noise.' })] });
+    await pager(message, {
+      title: 'sobs leaderboard',
+      note: `${ranked.length} counted`,
+      pages,
+      empty: 'nothing counted here yet.',
+    });
     return;
   }
 

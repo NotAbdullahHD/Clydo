@@ -206,6 +206,12 @@ export function convert(input, { target = null, fresh = true } = {}) {
 
   if (!content && !embeds.length) {
     if (editing && input.components) {
+      // a hand-built card replaces its container outright; keepCards is only
+      // for legacy edits that swap the row under existing embed content.
+      if (rows.some((row) => asJSON(row)?.type === CONTAINER)) {
+        return { ...input, flags: (Number(input.flags) || 0) | V2 };
+      }
+
       const cards = keepCards(target, rows);
       if (cards) {
         const { components: _old, ...rest } = input;

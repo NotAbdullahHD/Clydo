@@ -6,12 +6,12 @@ import {
 } from 'discord.js';
 import { get as appearance } from '../../lib/appearance.js';
 import { open as openBrowser } from '../../lib/browser.js';
+import { facts, heading, listing, payload, quiet, rule, shell } from '../../lib/card.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
-import { block, entry, panel } from '../../lib/theme.js';
 
 /**
- * /help and ,help — the panel from the reference shot: title, modules count,
- * commands count, prefix, and a select menu that swaps to one module's commands.
+ * /help and ,help — the same card in both places: who slink is, how much of it
+ * there is, and a menu that swaps the body to one module's commands.
  */
 
 export const data = new SlashCommandBuilder()
@@ -40,32 +40,33 @@ export function build(client, selected = home, look = null) {
   const modules = grouped(client);
   const total = client.commands.size;
   const list = [...(modules.get(selected) ?? [])].sort();
+  const at = selected === home;
 
-  // a module listing is a menu, not a manual: names only, one wrapped line of
-  // them. anyone who wants a description asks for that one command.
-  const description = selected === home
-    ? ['a quiet discord bot: reactions that earn sobs, a few games, and the usual moderation.', look?.bio]
-      .filter(Boolean).join('\n\n')
-    : list.map((name) => `\`${name}\``).join('  ');
-
-  const embed = panel({
-    title: selected === home ? 'slink help' : `slink help — ${selected} (${list.length})`,
-    description,
-    fields: selected === home
-      ? [
-        { name: 'prefix', value: `\`${prefixChar}\``, inline: true },
-        { name: 'commands', value: `\`${total}\``, inline: true },
-        { name: 'modules', value: `\`${modules.size}\``, inline: true },
-      ]
-      : [],
-    footer: selected === home
-      ? `use ${prefixChar}help <command> for details on a specific command`
-      : `use ${prefixChar}help <command> for one line about it`,
+  const box = shell();
+  heading(box, {
+    title: at ? 'slink help' : `slink help — ${selected}`,
+    note: at
+      ? `${total} commands · ${modules.size} modules · prefix ${prefixChar}`
+      : `${list.length} command${list.length === 1 ? '' : 's'} in this module`,
+    avatar: at ? client.user?.displayAvatarURL({ size: 256 }) : null,
   });
+  box.addSeparatorComponents(rule());
 
-  // the avatar is identity, not decoration — home only.
-  const avatar = selected === home ? client.user?.displayAvatarURL({ size: 256 }) : null;
-  if (avatar) embed.setThumbnail(avatar);
+  if (at) {
+    box.addTextDisplayComponents(listing([...modules.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([module, names]) => `\`›\` **${module}**  —  ${names.length} command${names.length === 1 ? '' : 's'}`)));
+  } else {
+    // a module is a menu, not a manual: names only, one wrapped line of them.
+    box.addTextDisplayComponents(listing([list.map((name) => `\`${name}\``).join('  ')]));
+  }
+
+  if (at && look?.bio) {
+    box.addSeparatorComponents(rule());
+    box.addTextDisplayComponents(quiet(look.bio));
+  }
+
+  box.addTextDisplayComponents(quiet(`use ${prefixChar}help <command> for one line about it`));
 
   const menu = new StringSelectMenuBuilder()
     .setCustomId('help:module')
@@ -77,7 +78,9 @@ export function build(client, selected = home, look = null) {
         .setValue(module)),
     );
 
-  return { embeds: [embed], components: [new ActionRowBuilder().addComponents(menu)] };
+  box.addActionRowComponents(new ActionRowBuilder().addComponents(menu));
+
+  return payload(box);
 }
 
 function detail(client, name) {
@@ -87,10 +90,16 @@ function detail(client, name) {
   const module = client.categories?.get(name) ?? 'core';
   const usage = command.data ? `/${name}` : `${prefixChar}${name}`;
 
-  return panel({
-    title: `slink help — ${name}`,
-    description: block(entry('module', module), entry('usage', `\`${usage}\``), entry('does', describe(client, name) || 'nothing documented')),
-  });
+  const box = shell();
+  heading(box, { title: `slink help — ${name}` });
+  box.addSeparatorComponents(rule());
+  box.addTextDisplayComponents(facts([
+    ['module', module],
+    ['usage', `\`${usage}\``],
+    ['does', describe(client, name) || 'nothing documented'],
+  ]));
+
+  return payload(box);
 }
 
 function live(message, client, userId, look = null) {
@@ -118,17 +127,14 @@ export async function prefix(message, args) {
   const name = args[0]?.toLowerCase();
 
   if (name) {
-    const embed = detail(message.client, name);
+    const found = detail(message.client, name);
 
-    if (!embed) {
+    if (!found) {
       await openBrowser(message, name);
       return;
     }
 
-    await message.reply({
-      embeds: [embed],
-      allowedMentions: { parse: [] },
-    });
+    await message.reply({ ...found, allowedMentions: { parse: [] } });
     return;
   }
 
