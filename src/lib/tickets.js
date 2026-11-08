@@ -7,7 +7,7 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from 'discord.js';
-import { heading, payload, quiet, rule, shell, simple, text, V2 } from './card.js';
+import { heading, payload, quiet, rule, shell, simple, text } from './card.js';
 import { cached } from './config.js';
 import { palette } from './theme.js';
 
@@ -58,7 +58,7 @@ async function open(interaction, state) {
   if (!channel) {
     await interaction.reply({
       ...simple({ accent: palette.bad, message: 'the ticket channel is gone — run `,ticket setup` again.' }),
-      flags: V2 | MessageFlags.Ephemeral,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -77,7 +77,7 @@ async function open(interaction, state) {
 
   await interaction.reply({
     ...simple({ accent: palette.good, message: `your ticket is open — <#${thread.id}>` }),
-    flags: V2 | MessageFlags.Ephemeral,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -88,7 +88,7 @@ async function close(interaction) {
   if (!thread) {
     await interaction.reply({
       ...simple({ accent: palette.bad, message: 'this is not a ticket thread.' }),
-      flags: V2 | MessageFlags.Ephemeral,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -99,7 +99,7 @@ async function close(interaction) {
   if (!owner && !staff) {
     await interaction.reply({
       ...simple({ accent: palette.bad, message: 'only the person who opened it or staff can close it.' }),
-      flags: V2 | MessageFlags.Ephemeral,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -129,7 +129,7 @@ export function watch(client) {
       if (!state.channelId) {
         await interaction.reply({
           ...simple({ accent: palette.bad, message: 'tickets are not set up in this server.' }),
-          flags: V2 | MessageFlags.Ephemeral,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -141,7 +141,7 @@ export function watch(client) {
       await interaction
         .followUp({
           ...simple({ accent: palette.bad, message: 'that one broke — try again in a moment.' }),
-          flags: V2 | MessageFlags.Ephemeral,
+          flags: MessageFlags.Ephemeral,
         })
         .catch(() => {});
     }

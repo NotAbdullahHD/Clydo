@@ -1,6 +1,6 @@
-import { Events } from 'discord.js';
-import { heading, payload, quiet, rule, shell, text } from './card.js';
+import { EmbedBuilder, Events } from 'discord.js';
 import { cached } from './config.js';
+import { palette } from './theme.js';
 
 /**
  * server logs.
@@ -64,20 +64,22 @@ function muted(state, { channelId = null, memberId = null }) {
 }
 
 export function card({ title, lead, sections = [], foot = [] }) {
-  const box = shell();
-  heading(box, { title });
-  box.addSeparatorComponents(rule());
-
-  if (lead.length) box.addTextDisplayComponents(text(lead.join('\n')));
+  const lines = [...lead];
 
   for (const section of sections) {
-    box.addTextDisplayComponents(text(`**${section.label}**`));
-    if (section.value) box.addTextDisplayComponents(text(section.value));
+    lines.push('', `**${section.label}**`);
+    if (section.value) lines.push(section.value);
   }
 
-  if (foot.length) box.addTextDisplayComponents(quiet(foot.join(' • ')));
+  const embed = new EmbedBuilder()
+    .setColor(palette.panel)
+    .setTitle(title)
+    .setDescription(lines.join('\n'))
+    .setTimestamp();
 
-  return payload(box);
+  if (foot.length) embed.setFooter({ text: foot.join(' • ') });
+
+  return { embeds: [embed] };
 }
 
 export function watch(client) {
@@ -113,7 +115,7 @@ export function watch(client) {
         `it was sent at \`${stamp(message.createdTimestamp)}\``,
       ],
       sections: [{ label: 'message content', value: body }],
-      foot: [`user id: ${message.author?.id ?? 'unknown'}`, stamp()],
+      foot: [`user id: ${message.author?.id ?? 'unknown'}`],
     });
   });
 
@@ -140,7 +142,7 @@ export function watch(client) {
         { label: 'before', value: oldText || 'not readable' },
         { label: 'after', value: newText || 'not readable' },
       ],
-      foot: [`user id: ${message.author?.id ?? 'unknown'}`, stamp()],
+      foot: [`user id: ${message.author?.id ?? 'unknown'}`],
     });
   });
 
@@ -153,7 +155,7 @@ export function watch(client) {
       title: 'member joined',
       lead: [`<@${member.id}> joined — **${member.guild.memberCount}** now.`],
       sections: [{ label: 'account', value: `created ${ago(member.user.createdTimestamp)}` }],
-      foot: [`user id: ${member.id}`, stamp()],
+      foot: [`user id: ${member.id}`],
     });
   });
 
@@ -169,7 +171,7 @@ export function watch(client) {
         label: 'was here',
         value: member.joinedTimestamp ? `joined ${ago(member.joinedTimestamp)}` : 'join date unknown',
       }],
-      foot: [`user id: ${member.id}`, stamp()],
+      foot: [`user id: ${member.id}`],
     });
   });
 
@@ -187,7 +189,7 @@ export function watch(client) {
           `<@${member.id}>`,
           `\`${cut(before.nickname) || before.user.username}\` → \`${cut(member.nickname) || member.user.username}\``,
         ],
-        foot: [`user id: ${member.id}`, stamp()],
+        foot: [`user id: ${member.id}`],
       });
     }
 
@@ -198,7 +200,7 @@ export function watch(client) {
       await emit(guild, 'moderation', {
         title: isMuted ? 'member timed out' : 'timeout removed',
         lead: [`<@${member.id}> ${isMuted ? `until ${stamp(isMuted)}` : 'can talk again'}`],
-        foot: [`user id: ${member.id}`, stamp()],
+        foot: [`user id: ${member.id}`],
       });
     }
 
@@ -214,7 +216,7 @@ export function watch(client) {
       await emit(guild, 'roles', {
         title: 'roles updated',
         lead: [`<@${member.id}>`, ...lines],
-        foot: [`user id: ${member.id}`, stamp()],
+        foot: [`user id: ${member.id}`],
       });
     }
   });
@@ -227,7 +229,7 @@ export function watch(client) {
     await emit(channel.guild, 'channels', {
       title: 'channel created',
       lead: [`**${channel.name ?? channel.id}** — ${channelName(channel.id)}`],
-      foot: [`channel id: ${channel.id}`, stamp()],
+      foot: [`channel id: ${channel.id}`],
     });
   });
 
@@ -239,7 +241,7 @@ export function watch(client) {
     await emit(channel.guild, 'channels', {
       title: 'channel deleted',
       lead: [`**${channel.name ?? channel.id}** is gone.`],
-      foot: [`channel id: ${channel.id}`, stamp()],
+      foot: [`channel id: ${channel.id}`],
     });
   });
 
@@ -258,7 +260,7 @@ export function watch(client) {
     await emit(channel.guild, 'channels', {
       title: 'channel updated',
       lead: [channelName(channel.id), ...lines],
-      foot: [`channel id: ${channel.id}`, stamp()],
+      foot: [`channel id: ${channel.id}`],
     });
   });
 
@@ -269,7 +271,7 @@ export function watch(client) {
     await emit(role.guild, 'roles', {
       title: 'role created',
       lead: [`**${role.name}** — <@&${role.id}>`],
-      foot: [`role id: ${role.id}`, stamp()],
+      foot: [`role id: ${role.id}`],
     });
   });
 
@@ -280,7 +282,7 @@ export function watch(client) {
     await emit(role.guild, 'roles', {
       title: 'role deleted',
       lead: [`**${role.name}** is gone.`],
-      foot: [`role id: ${role.id}`, stamp()],
+      foot: [`role id: ${role.id}`],
     });
   });
 
@@ -296,7 +298,7 @@ export function watch(client) {
     await emit(role.guild, 'roles', {
       title: 'role updated',
       lead: [`<@&${role.id}>`, ...lines],
-      foot: [`role id: ${role.id}`, stamp()],
+      foot: [`role id: ${role.id}`],
     });
   });
 
@@ -316,7 +318,7 @@ export function watch(client) {
     await emit(guild, 'voice', {
       title: !before.channelId ? 'joined voice' : !after.channelId ? 'left voice' : 'moved voice',
       lead: [`<@${member.id}>`, ...lines],
-      foot: [`user id: ${member.id}`, stamp()],
+      foot: [`user id: ${member.id}`],
     });
   });
 
@@ -328,7 +330,7 @@ export function watch(client) {
       title: 'member banned',
       lead: [`**${ban.user.username}** was banned.`],
       sections: ban.reason ? [{ label: 'reason', value: cut(ban.reason) }] : [],
-      foot: [`user id: ${ban.user.id}`, stamp()],
+      foot: [`user id: ${ban.user.id}`],
     });
   });
 
@@ -339,7 +341,7 @@ export function watch(client) {
     await emit(ban.guild, 'moderation', {
       title: 'ban lifted',
       lead: [`**${ban.user.username}** can come back.`],
-      foot: [`user id: ${ban.user.id}`, stamp()],
+      foot: [`user id: ${ban.user.id}`],
     });
   });
 }

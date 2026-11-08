@@ -112,9 +112,6 @@ function live(message, client, userId, look = null) {
     await press.update(build(client, press.values?.[0] ?? home, look));
   });
 
-  collector.on('end', () => {
-    message.edit({ components: [] }).catch(() => {});
-  });
 }
 
 export async function execute(interaction) {

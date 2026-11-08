@@ -1,5 +1,6 @@
 import {
   ContainerBuilder,
+  EmbedBuilder,
   MediaGalleryBuilder,
   MessageFlags,
   SectionBuilder,
@@ -13,10 +14,11 @@ import { entry, lower, palette } from './theme.js';
 /**
  * hand-built cards.
  *
- * components.js translates embeds for the rest of the bot; the five cards people
- * actually stop and read are written here straight into containers, so their
- * hierarchy is deliberate instead of whatever an embed's title/field grammar
- * allows. one rail, one heading, a rule, then data.
+ * components v2 is opt-in: only the surfaces that are built as cards use a
+ * container, and everything else is an ordinary embed. that keeps the bot
+ * looking like discord instead of like a theme, and it keeps v2 where the
+ * layout is actually doing work — the help menu, the welcome card, the ticket
+ * panel, the pager and the confirm prompt.
  */
 
 export const V2 = MessageFlags.IsComponentsV2;
@@ -68,10 +70,13 @@ export function picture(container, url) {
 /** the payload a card is sent as. */
 export const payload = (container) => ({ components: [container], flags: V2 });
 
-/** the shortest card there is: one line, optional title. errors and receipts. */
+/** the shortest reply there is: one line, optional title, as a plain embed. */
 export function simple({ title = null, message, accent = palette.panel, note = null }) {
-  const box = shell(accent);
-  if (title) heading(box, { title, note });
-  box.addTextDisplayComponents(text(message));
-  return payload(box);
+  const embed = new EmbedBuilder()
+    .setColor(accent)
+    .setDescription(note ? `${message}\n-# ${note}` : String(message ?? ''));
+
+  if (title) embed.setTitle(lower(title));
+
+  return { embeds: [embed] };
 }

@@ -1,15 +1,16 @@
-import { Events, MediaGalleryBuilder, SectionBuilder, ThumbnailBuilder } from 'discord.js';
-import { payload, quiet, rule, shell, text } from './card.js';
+import { EmbedBuilder, Events } from 'discord.js';
 import { cached, set } from './config.js';
 import { sql } from './sqlite.js';
+import { palette } from './theme.js';
 
 /**
  * starboard.
  *
  * a message that collects enough of one emoji is copied into the starboard
- * channel once: the count, the face, the words, the attachment, and the way
- * back. channels, roles and members can be told to never count, and the copy
- * leaves again when the reactions fall below the threshold.
+ * channel once: `⭐ #3` as the line above, then one embed with the author, the
+ * words, the image, where it came from, the way back and when. channels, roles
+ * and members can be told to never count, and the copy leaves again when the
+ * reactions fall below the threshold.
  */
 
 const key = 'starboard';
@@ -89,12 +90,10 @@ export function toggleIgnore(guildId, { channelId = null, roleId = null, memberI
 
   return {
     on: !has,
-    label: channelId ? `<#${id}>` : roleId ? `<@&${id}>` : labelOfMember(id),
+    label: channelId ? `<#${id}>` : roleId ? `<@&${id}>` : `<@${id}>`,
     list,
   };
 }
-
-const labelOfMember = (id) => `<@${id}>`;
 
 const ignored = (message, state) => {
   const lists = state.ignore;
@@ -119,67 +118,39 @@ const countOf = (message, wanted, allowSelf) => {
   return Math.max(0, count);
 };
 
-const cut = (value, size = 900) => {
+const cut = (value, size = 1_200) => {
   const body = String(value ?? '').trim();
   return body.length > size ? `${body.slice(0, size - 1)}…` : body;
 };
 
-const stamp = (ms) => `<t:${Math.floor(ms / 1000)}:f>`;
-
-/** images and video load in the card; everything else is a link with its name. */
-function media(message, state) {
-  const files = [...(message.attachments?.values?.() ?? [])];
-  if (!files.length) return { gallery: [], links: [] };
-
-  if (!state.options.attachments) {
-    return { gallery: [], links: files.slice(0, 5).map((file) => `[${file.name}](${file.url})`) };
-  }
-
-  const gallery = files
-    .filter((file) => /^(image|video)\//.test(file.contentType ?? ''))
-    .slice(0, 4)
-    .map((file) => ({ media: { url: file.url } }));
-
-  const links = files
-    .filter((file) => !/^(image|video)\//.test(file.contentType ?? ''))
-    .slice(0, 5)
-    .map((file) => `[${file.name}](${file.url})`);
-
-  return { gallery, links };
-}
-
+/** the post: a count line, then one embed shaped like the boards people know. */
 export function card(message, state, count) {
-  const box = shell();
-  const author = message.author;
+  const embed = new EmbedBuilder()
+    .setColor(palette.accent)
+    .setTimestamp(state.options.timestamp ? message.createdTimestamp : null);
 
-  box.addTextDisplayComponents(text(`${state.emoji} **${count}**`));
-  box.addSeparatorComponents(rule());
-
-  const face = author?.displayAvatarURL?.({ size: 128 });
-
-  if (face) {
-    box.addSectionComponents(
-      new SectionBuilder()
-        .addTextDisplayComponents(text(`**${author.username}**`))
-        .setThumbnailAccessory(new ThumbnailBuilder().setURL(face)),
-    );
-  } else {
-    box.addTextDisplayComponents(text(`**${author?.username ?? 'someone'}**`));
-  }
+  const face = message.author?.displayAvatarURL?.({ size: 64 });
+  if (face) embed.setAuthor({ name: message.author.username, iconURL: face });
 
   const body = cut(message.content);
-  if (body) box.addTextDisplayComponents(text(body));
+  if (body) embed.setDescription(body);
 
-  const { gallery, links } = media(message, state);
-  if (gallery.length) box.addMediaGalleryComponents(new MediaGalleryBuilder().addItems(...gallery));
-  if (!body && links.length) box.addTextDisplayComponents(text(links.join('\n')));
-  else if (links.length) box.addTextDisplayComponents(quiet(links.join(' · ')));
+  const files = [...(message.attachments?.values?.() ?? [])];
+  const images = files.filter((file) => /^image\//.test(file.contentType ?? ''));
+  const others = files.filter((file) => !/^image\//.test(file.contentType ?? ''));
 
-  box.addTextDisplayComponents(text(`<#${message.channelId}>`));
-  if (state.options.jump) box.addTextDisplayComponents(text(`[jump to message](${message.url})`));
-  if (state.options.timestamp) box.addTextDisplayComponents(quiet(stamp(message.createdTimestamp)));
+  // an attachment loads as an image; a file that cannot render keeps its name.
+  if (state.options.attachments && images.length) embed.setImage(images[0].url);
 
-  return payload(box);
+  const lines = [`<#${message.channelId}>`];
+  if (state.options.jump) lines.push(`[jump to message](${message.url})`);
+
+  const links = state.options.attachments ? others : [...images, ...others];
+  for (const file of links.slice(0, 5)) lines.push(`[${file.name}](${file.url})`);
+
+  embed.addFields({ name: '\u200b', value: lines.join('\n') });
+
+  return { content: `${state.emoji} #${count}`, embeds: [embed] };
 }
 
 export function watch(client) {

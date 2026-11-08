@@ -19,7 +19,6 @@ import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
 import { open as openStore } from './lib/sqlite.js';
 import { migrate as migrateJson } from './lib/import-json.js';
-import { install as installComponentsV2 } from './lib/components.js';
 import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
@@ -131,9 +130,6 @@ const client = new Client({
   /** reactions on old messages arrive partial, so they need fetching. */
   partials: [Partials.Message, Partials.Reaction, Partials.Channel],
 });
-/** every reply becomes a components v2 message; install before anything sends. */
-log(`components v2: ${installComponentsV2()} reply path(s) wrapped.`);
-
 client.commands = new Collection();
 /** command name → its folder, so /help can group them into modules. */
 client.categories = new Map();

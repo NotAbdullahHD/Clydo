@@ -1,7 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { facts, heading, payload, quiet, rule, shell } from '../../lib/card.js';
 import { done, oops } from '../../lib/line.js';
 import { norm, save, settings, toggleIgnore } from '../../lib/starboard.js';
+import { panel } from '../../lib/theme.js';
 
 /**
  * `/starboard` and `,starboard` — the message hall of fame.
@@ -54,18 +54,6 @@ function view(guildId) {
   const { channels, roles, members } = state.ignore;
   const muted = channels.length + roles.length + members.length;
 
-  const box = shell();
-  heading(box, { title: 'starboard', note: state.channelId ? `<#${state.channelId}>` : 'off' });
-  box.addSeparatorComponents(rule());
-  box.addTextDisplayComponents(facts([
-    ['channel', state.channelId ? `<#${state.channelId}>` : 'none'],
-    ['emoji', state.emoji],
-    ['threshold', String(state.threshold)],
-    ['ignoring', muted
-      ? `${channels.length} channel${channels.length === 1 ? '' : 's'}, ${roles.length} role${roles.length === 1 ? '' : 's'}, ${members.length} member${members.length === 1 ? '' : 's'}`
-      : 'nothing'],
-  ]));
-
   const options = [
     state.options.attachments ? 'attachments' : null,
     state.options.timestamp ? 'timestamp' : null,
@@ -73,9 +61,24 @@ function view(guildId) {
     state.options.selfStar ? 'self-stars count' : null,
   ].filter(Boolean);
 
-  box.addTextDisplayComponents(quiet(options.length ? `shows ${options.join(' · ')}` : 'plain copies'));
-
-  return payload(box);
+  return {
+    embeds: [panel({
+      title: 'starboard',
+      description: [
+        `-# ${state.channelId ? 'on' : 'off'}`,
+        '',
+        `**channel** — ${state.channelId ? `<#${state.channelId}>` : 'not set'}`,
+        `**emoji** — ${state.emoji}`,
+        `**threshold** — ${state.threshold}`,
+        `**ignoring** — ${muted
+          ? `${channels.length} channel${channels.length === 1 ? '' : 's'}, ${roles.length} role${roles.length === 1 ? '' : 's'}, ${members.length} member${members.length === 1 ? '' : 's'}`
+          : 'nothing'}`,
+        `**shows** — ${options.length ? options.join(' · ') : 'plain copies'}`,
+        '',
+        '-# `/starboard set` · `/starboard threshold` · `/starboard emoji` · `/starboard ignore`',
+      ].join('\n'),
+    })],
+  };
 }
 
 const emojiValue = (raw) => {

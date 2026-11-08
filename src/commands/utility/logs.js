@@ -1,8 +1,8 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { facts, heading, payload, quiet, rule, shell } from '../../lib/card.js';
 import { set } from '../../lib/config.js';
 import { done, oops } from '../../lib/line.js';
 import { kinds, settings } from '../../lib/logging.js';
+import { panel } from '../../lib/theme.js';
 
 /**
  * `/logs` and `,logs` — where the server writes things down.
@@ -99,18 +99,18 @@ function view(guildId) {
   const state = settings(guildId);
   const on = kinds.filter((kind) => state.routes[kind]).length;
 
-  const box = shell();
-  heading(box, {
-    title: 'logs',
-    note: `${on}/${kinds.length} events · ${state.ignore.members.length} members muted · ${state.ignore.channels.length} channels muted`,
-  });
-  box.addSeparatorComponents(rule());
-  box.addTextDisplayComponents(facts(
-    kinds.map((kind) => [kind, state.routes[kind] ? `<#${state.routes[kind]}>` : 'off']),
-  ));
-  box.addTextDisplayComponents(quiet('`/logs add` routes one event · `/logs ignore add` mutes a member or channel'));
-
-  return payload(box);
+  return {
+    embeds: [panel({
+      title: 'logs',
+      description: [
+        `-# ${on}/${kinds.length} events · ${state.ignore.members.length} members muted · ${state.ignore.channels.length} channels muted`,
+        '',
+        ...kinds.map((kind) => `${state.routes[kind] ? `<#${state.routes[kind]}>` : 'off'} — **${kind}**`),
+        '',
+        '-# `/logs add` routes one event · `/logs ignore add` mutes a member or channel',
+      ].join('\n'),
+    })],
+  };
 }
 
 export async function execute(interaction) {

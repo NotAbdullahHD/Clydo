@@ -1,6 +1,6 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { facts, heading, payload, quiet, rule, shell, text } from '../../lib/card.js';
 import { done, oops } from '../../lib/line.js';
+import { panel } from '../../lib/theme.js';
 import { add, card, removeChannel, save, settings } from '../../lib/welcome.js';
 
 /**
@@ -61,32 +61,26 @@ export const data = new SlashCommandBuilder()
 
 function view(guildId) {
   const state = settings(guildId);
-
-  const box = shell();
-  heading(box, {
-    title: 'welcome',
-    note: state.channels.length
-      ? `${state.channels.length} channel${state.channels.length === 1 ? '' : 's'}`
-      : 'off',
-  });
-  box.addSeparatorComponents(rule());
-  box.addTextDisplayComponents(facts([
-    ['join text', state.texts.join],
-    ['leave text', state.texts.leave],
-  ]));
+  const lines = [
+    `-# ${state.channels.length ? `${state.channels.length} channel${state.channels.length === 1 ? '' : 's'}` : 'off'}`,
+    '',
+    `**join** — ${state.texts.join}`,
+    `**leave** — ${state.texts.leave}`,
+  ];
 
   if (state.channels.length) {
-    box.addSeparatorComponents(rule());
-    box.addTextDisplayComponents(text(state.channels.map((entry) => {
+    lines.push('');
+    for (const entry of state.channels) {
       const timer = entry.selfDestruct > 0 ? `deletes after ${entry.selfDestruct}s` : 'stays put';
-      return `\`›\` <#${entry.channelId}>  —  ${timer} · ${entry.pingable ? 'pings the member' : 'no ping'}`;
-    }).join('\n')));
+      lines.push(`<#${entry.channelId}> — ${timer} · ${entry.pingable ? 'pings the member' : 'no ping'}`);
+    }
   } else {
-    box.addTextDisplayComponents(quiet('no channels yet — `/config welcome add`'));
+    lines.push('', '-# no channels yet — `/config welcome add`');
   }
-  box.addTextDisplayComponents(quiet('placeholders — {user} {name} {server} {count}'));
 
-  return payload(box);
+  lines.push('-# placeholders — {user} {name} {server} {count}');
+
+  return { embeds: [panel({ title: 'welcome', description: lines.join('\n') })] };
 }
 
 function setText(guildId, which, value) {
