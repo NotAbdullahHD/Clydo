@@ -104,6 +104,11 @@ function inspectV2(components) {
       if (/^[0-9a-f]{6}$/i.test(hex)) node.accent_color = parseInt(hex, 16);
     }
 
+    if (node.type === 17 && !node.components?.length) {
+      problem = 'that container has nothing in it — put a text block inside.';
+      return;
+    }
+
     if (Array.isArray(node.components)) node.components.forEach(walk);
     if (node.accessory) walk(node.accessory);
   };
