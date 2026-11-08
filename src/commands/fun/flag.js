@@ -20,7 +20,7 @@ const window = 10_000;
 /** channel id → the running round, shared with `,flaghint`. */
 export const rounds = new Map();
 
-const iso = (code) => `https://flagcdn.com/w640/${code}.png`;
+const iso = (code) => `https://flagcdn.com/w320/${code}.png`;
 
 /** three bands, by how long the country name is — greed labels difficulty too. */
 const difficulty = (country) => (country.length <= 5 ? 'easy' : country.length <= 9 ? 'medium' : 'hard');
@@ -37,7 +37,9 @@ export const card = (message, flag) => new EmbedBuilder()
     'Type your answer in the chat.',
     `\`${marks.accent}\` \`,flaghint\` for a hint`,
   ].join('\n'))
-  .setImage(iso(flag[0]))
+  // a section thumbnail, not a gallery: the flag sits beside the text at a
+  // readable size instead of filling the card.
+  .setThumbnail(iso(flag[0]))
   .setColor(palette.panel);
 
 /** lower-case, punctuation flattened — `sri lanka.` and `Sri  Lanka` match. */
