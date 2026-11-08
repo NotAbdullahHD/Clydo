@@ -1,4 +1,5 @@
 import { amount, bad, coin, get, good, short, update } from '../../lib/economy.js';
+import { tier } from '../../lib/emoji.js';
 
 /** `,pay @user <amount>` — wallet to wallet. */
 
@@ -11,7 +12,10 @@ export async function prefix(message, args) {
   const record = await get(message.author.id);
   const value = amount(args.find((arg) => /^[\d,_]+$/.test(arg) || arg.toLowerCase() === 'all'), record.wallet);
 
-  const reply = (embed) => message.reply({ embeds: [embed], allowedMentions: { parse: [] } });
+  const reply = (embed) => message.reply({
+    embeds: [embed],
+    allowedMentions: { parse: [], users: target ? [target.id] : [] },
+  });
 
   if (!target) {
     await reply(bad(`${tag}: usage — \`,pay @user <amount>\``));
@@ -50,5 +54,5 @@ export async function prefix(message, args) {
     return row;
   }, target.username);
 
-  await reply(good(`${tag}: paid ${coin} ${short(value)} to <@${target.id}>.`));
+  await reply(good(`${tag}: paid ${tier(value)} ${short(value)} to <@${target.id}>.`));
 }
