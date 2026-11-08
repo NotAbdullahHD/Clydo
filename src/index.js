@@ -23,6 +23,7 @@ import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
 import { options as mobileOptions } from './lib/mobile.js';
+import { validate as validateEmoji } from './lib/emoji.js';
 import { watch as watchSnipes } from './lib/snipes.js';
 import { watch as watchAutomod } from './lib/automod.js';
 import { watch as watchLogging } from './lib/logging.js';
@@ -226,6 +227,7 @@ async function registerCommands() {
 
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
+  await validateEmoji(client, log);
   log('counts: data/slink.db.');
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
   log(membersIntent ? 'members intent: on.' : 'members intent: off — welcome, autoroles and member logs wait for it.');
