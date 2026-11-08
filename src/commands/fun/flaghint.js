@@ -1,4 +1,5 @@
 import { hintFor, rounds } from './flag.js';
+import { emoji } from '../../lib/emoji.js';
 
 /**
  * the flag embed tells people to try `,flaghint`, so it has to exist. it hints
@@ -12,7 +13,7 @@ export async function prefix(message) {
   const round = rounds.get(message.channel.id);
 
   if (!round) {
-    await message.reply('❌ No flag game is running here! start one with `,flag`');
+    await message.reply(emoji.cross + ' No flag game is running here! start one with `,flag`');
     return;
   }
 

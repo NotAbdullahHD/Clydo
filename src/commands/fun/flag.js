@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 import { flags } from '../../lib/flag-list.js';
 import { addPoint, board, total } from '../../lib/flags.js';
 import { marks, palette } from '../../lib/theme.js';
@@ -81,7 +82,7 @@ export async function prefix(message) {
   const channelId = message.channel.id;
 
   if (rounds.has(channelId)) {
-    await message.reply('❌ A flag game is already running in this channel!');
+    await message.reply(emoji.cross + ' A flag game is already running in this channel!');
     return;
   }
 
@@ -111,7 +112,7 @@ export async function prefix(message) {
       await addPoint(message.guild.id, winner.author.id, winner.author.username).catch(() => {});
       await gameMsg.edit({ components: [lock(row)] }).catch(() => {});
 
-      await message.channel.send(`✅ **${winner.author.username}** got it! The correct answer was: **${flag[1]}**`);
+      await message.channel.send(`${emoji.check} **${winner.author.username}** got it! The correct answer was: **${flag[1]}**`);
     } catch (error) {
       console.warn('[slink] flag round skipped —', error?.message ?? error);
     }

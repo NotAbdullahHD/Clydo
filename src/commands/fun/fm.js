@@ -1,4 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 import { getUser, setUser } from '../../lib/lastfm.js';
 
 /**
@@ -17,26 +18,26 @@ export async function prefix(message, args) {
     const username = args[1];
 
     if (!username) {
-      await message.reply('❌ Usage: `,fm set <your_lastfm_username>`');
+      await message.reply(emoji.cross + ' Usage: `,fm set <your_lastfm_username>`');
       return;
     }
 
     await setUser(message.author.id, username);
-    await message.reply(`✅ Last.fm username set to: **${username}**`);
+    await message.reply(`${emoji.check} Last.fm username set to: **${username}**`);
     return;
   }
 
   const key = process.env.LASTFM_API_KEY?.trim();
 
   if (!key) {
-    await message.reply('❌ Last.fm not configured. Ask the bot owner to add `LASTFM_API_KEY`.');
+    await message.reply(emoji.cross + ' Last.fm not configured. Ask the bot owner to add `LASTFM_API_KEY`.');
     return;
   }
 
   const saved = await getUser(message.author.id);
 
   if (!saved) {
-    await message.reply('❌ You haven\'t set your username! Use `,fm set <name>`');
+    await message.reply(emoji.cross + ' You haven\'t set your username! Use `,fm set <name>`');
     return;
   }
 
@@ -54,7 +55,7 @@ export async function prefix(message, args) {
     const track = data?.recenttracks?.track?.[0];
 
     if (!track) {
-      await message.reply('❌ No recent tracks found.');
+      await message.reply(emoji.cross + ' No recent tracks found.');
       return;
     }
 
@@ -73,6 +74,6 @@ export async function prefix(message, args) {
     await message.reply({ embeds: [embed] });
   } catch (error) {
     console.warn('[slink] last.fm lookup failed —', error?.message ?? error);
-    await message.reply('❌ Error talking to Last.fm.');
+    await message.reply(emoji.cross + ' Error talking to Last.fm.');
   }
 }

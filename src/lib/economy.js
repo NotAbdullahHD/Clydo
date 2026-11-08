@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { emoji } from './emoji.js';
 import path from 'node:path';
 import { EmbedBuilder } from 'discord.js';
 import { sql } from './sqlite.js';
@@ -14,7 +15,7 @@ import { palette } from './theme.js';
 export const currency = 'coins';
 
 /** the two glyphs the economy uses, nothing more. */
-export const coin = '🟡';
+export const coin = emoji.orbs;
 export const bank = '🏦';
 
 /** 191900 → 191.9K, 1500000 → 1.5M — never a wall of digits. */
@@ -43,11 +44,11 @@ export function short(value) {
   return `${trim(Math.round((n / units[0][0]) * 10) / 10)}${units[0][1]}`;
 }
 
-/** ✅ one line, green. */
-export const good = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
+/** one line, green. */
+export const good = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`${emoji.check} ${text}`);
 
-/** ❌ one line, red. */
-export const bad = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
+/** one line, red. */
+export const bad = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`${emoji.cross} ${text}`);
 
 /** a plain card on discord's own grey. */
 export const card = (title, description) => new EmbedBuilder()

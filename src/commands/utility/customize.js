@@ -8,6 +8,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 import { apply, get, reset } from '../../lib/appearance.js';
 import { ask, confirm } from '../../lib/confirm.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
@@ -26,8 +27,8 @@ export const name = 'customize';
 const maxBio = 200;
 const maxImage = 400;
 
-const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
-const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
+const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`${emoji.check} ${text}`);
+const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`${emoji.cross} ${text}`);
 
 const isOwner = (message) => message.guild?.ownerId === message.author.id
   || message.author.id === process.env.OWNER_ID?.trim();

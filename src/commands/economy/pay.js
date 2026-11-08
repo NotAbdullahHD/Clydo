@@ -24,7 +24,7 @@ export async function prefix(message, args) {
   }
 
   if (target.bot) {
-    await reply(bad(`${tag}: bots have no use for coins.`));
+    await reply(bad(`${tag}: bots have no use for orbs.`));
     return;
   }
 

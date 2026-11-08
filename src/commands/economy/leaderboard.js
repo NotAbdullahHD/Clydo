@@ -25,6 +25,6 @@ export async function prefix(message) {
     title: 'economy leaderboard',
     note: 'wallet and bank together',
     pages,
-    empty: 'nobody has any coins yet.',
+    empty: 'nobody has any orbs yet.',
   });
 }

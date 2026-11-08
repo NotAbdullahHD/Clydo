@@ -1,4 +1,5 @@
 import { Events, PermissionFlagsBits } from 'discord.js';
+import { emoji } from './emoji.js';
 import { simple } from './card.js';
 import { cached } from './config.js';
 import { prefix } from './prefix.js';
@@ -71,7 +72,7 @@ export function watch(client) {
 
       const sent = await message.channel
         .send({
-          ...simple({ accent: palette.warn, message: `<@${message.author.id}> ${reason}` }),
+          ...simple({ accent: palette.warn, message: `${emoji.warning} <@${message.author.id}> ${reason}` }),
           allowedMentions: { parse: [] },
         })
         .catch(() => null);

@@ -1,4 +1,5 @@
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 import {
   create,
   exemption,
@@ -25,8 +26,8 @@ import { block, datapoint, panel, palette } from '../../lib/theme.js';
 
 export const name = 'honeypot';
 
-const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`✅ ${text}`);
-const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`❌ ${text}`);
+const ok = (text) => new EmbedBuilder().setColor(palette.good).setDescription(`${emoji.check} ${text}`);
+const no = (text) => new EmbedBuilder().setColor(palette.bad).setDescription(`${emoji.cross} ${text}`);
 
 /** same cache trap as the watcher: a fresh member is not in cache without the intent. */
 async function allowed(message) {

@@ -1,4 +1,5 @@
 import { MessageFlags } from 'discord.js';
+import { emoji } from './emoji.js';
 import { simple } from './card.js';
 import { palette } from './theme.js';
 
@@ -11,7 +12,7 @@ import { palette } from './theme.js';
 
 export const done = (source, text) => simple({
   accent: palette.good,
-  message: `✅ <@${source?.user?.id ?? source?.author?.id}>: ${text}`,
+  message: `${emoji.check} <@${source?.user?.id ?? source?.author?.id}>: ${text}`,
 });
 
 export const oops = (text) => simple({ accent: palette.bad, message: text });

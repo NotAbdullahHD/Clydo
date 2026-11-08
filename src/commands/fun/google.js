@@ -1,8 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 
 /**
  * google search and image search through serpapi, carried over from labubu:
- * ten results, one per page, ◀ ▶ ✖ underneath, and the same embeds.
+ * ten results, one per page, ◀ ▶ and a cross underneath, and the same embeds.
  */
 
 export const name = 'google';
@@ -15,20 +16,20 @@ const failure = (text) => ({ embeds: [new EmbedBuilder().setColor(0xED4245).setD
 const page = (index, total, disabled = false) => new ActionRowBuilder().addComponents(
   new ButtonBuilder().setCustomId('gsearch_prev').setEmoji('◀').setStyle(ButtonStyle.Primary).setDisabled(disabled || index === 0),
   new ButtonBuilder().setCustomId('gsearch_next').setEmoji('▶').setStyle(ButtonStyle.Primary).setDisabled(disabled || index >= total - 1),
-  new ButtonBuilder().setCustomId('gsearch_close').setEmoji('✖').setStyle(ButtonStyle.Danger).setDisabled(disabled),
+  new ButtonBuilder().setCustomId('gsearch_close').setEmoji(emoji.cross).setStyle(ButtonStyle.Danger).setDisabled(disabled),
 );
 
 /** shared by `,google` and `,image` — the only difference is the engine. */
 export async function search(message, args, type = 'web') {
   if (!args.length) {
-    await message.reply(failure('❌ Usage: `,google <query>` or `,image <query>`'));
+    await message.reply(failure(emoji.cross + ' Usage: `,google <query>` or `,image <query>`'));
     return;
   }
 
   const apiKey = process.env.SERPAPI_KEY?.trim();
 
   if (!apiKey) {
-    await message.reply(failure('❌ Search not configured. Ask the bot owner to add `SERPAPI_KEY`.'));
+    await message.reply(failure(emoji.cross + ' Search not configured. Ask the bot owner to add `SERPAPI_KEY`.'));
     return;
   }
 
@@ -48,7 +49,7 @@ export async function search(message, args, type = 'web') {
     const data = await response.json();
 
     if (data.error) {
-      await message.reply(failure(`❌ Search error: \`${data.error}\``));
+      await message.reply(failure(`${emoji.cross} Search error: \`${data.error}\``));
       return;
     }
 
@@ -120,7 +121,7 @@ export async function search(message, args, type = 'web') {
       reply.edit({ components: [page(index, total, true)] }).catch(() => {});
     });
   } catch (error) {
-    await message.reply(failure(`❌ Error: \`${error.message}\``));
+    await message.reply(failure(`${emoji.cross} Error: \`${error.message}\``));
   }
 }
 

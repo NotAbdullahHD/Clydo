@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { emoji } from '../../lib/emoji.js';
 import { categories, questions } from '../../lib/trivia-questions.js';
 import { addPoint, board, total } from '../../lib/trivia.js';
 
@@ -36,7 +37,7 @@ export async function prefix(message, args) {
   const channelId = message.channel.id;
 
   if (active.has(channelId)) {
-    await message.channel.send('❌ A trivia game is already running in this channel!');
+    await message.channel.send(emoji.cross + ' A trivia game is already running in this channel!');
     return;
   }
 
@@ -85,7 +86,7 @@ export async function prefix(message, args) {
 
     await addPoint(message.guild.id, candidate.author.id, candidate.author.username).catch(() => {});
     await gameMsg.edit({ components: [lock(row)] }).catch(() => {});
-    await message.channel.send(`✅ **${candidate.author.username}** got it! The answer was **${q.a}** — +1 point!`);
+    await message.channel.send(`${emoji.check} **${candidate.author.username}** got it! The answer was **${q.a}** — +1 point!`);
   });
 
   guesses.on('end', async (_collected, reason) => {
