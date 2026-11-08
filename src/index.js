@@ -18,6 +18,7 @@ import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
 import { connect } from './lib/db.js';
+import { install as installComponentsV2 } from './lib/components.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
 import { watch as watchSnipes } from './lib/snipes.js';
@@ -115,6 +116,9 @@ const client = new Client({
   /** reactions on old messages arrive partial, so they need fetching. */
   partials: [Partials.Message, Partials.Reaction, Partials.Channel],
 });
+/** every reply becomes a components v2 message; install before anything sends. */
+log(`components v2: ${installComponentsV2()} reply path(s) wrapped.`);
+
 client.commands = new Collection();
 /** command name → its folder, so /help can group them into modules. */
 client.categories = new Map();
