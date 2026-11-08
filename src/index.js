@@ -24,6 +24,12 @@ import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
 import { watch as watchSnipes } from './lib/snipes.js';
+import { watch as watchAutomod } from './lib/automod.js';
+import { watch as watchLogging } from './lib/logging.js';
+import { watch as watchRoles } from './lib/roles.js';
+import { watch as watchStarboard } from './lib/starboard.js';
+import { watch as watchTickets } from './lib/tickets.js';
+import { watch as watchWelcome } from './lib/welcome.js';
 import { panel } from './lib/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +40,7 @@ const guildId = process.env.GUILD_ID?.trim();
 const overrides = {
   presence: process.env.PRESENCE_INTENT?.trim().toLowerCase(),
   messageContent: process.env.MESSAGE_INTENT?.trim().toLowerCase(),
+  members: process.env.MEMBERS_INTENT?.trim().toLowerCase(),
 };
 
 const log = (...args) => console.log('[slink]', ...args);
@@ -51,6 +58,7 @@ if (!token) {
  */
 const bits = {
   presence: (1 << 12) | (1 << 13),
+  members: (1 << 14) | (1 << 15),
   messageContent: (1 << 18) | (1 << 19),
 };
 
@@ -61,11 +69,12 @@ async function portalIntents() {
 
     return {
       presence: Boolean(flags & bits.presence),
+      members: Boolean(flags & bits.members),
       messageContent: Boolean(flags & bits.messageContent),
     };
   } catch (error) {
     report('reading portal intents', error);
-    return { presence: false, messageContent: false };
+    return { presence: false, members: false, messageContent: false };
   }
 }
 
@@ -77,6 +86,7 @@ const resolve = (override, detected) => {
 
 const portal = await portalIntents();
 const presenceIntent = resolve(overrides.presence, portal.presence);
+const membersIntent = resolve(overrides.members, portal.members);
 const messageIntent = resolve(overrides.messageContent, portal.messageContent);
 
 const holder = claim();
@@ -111,6 +121,7 @@ const intents = [
   GatewayIntentBits.GuildMessageReactions,
 ];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
+if (membersIntent) intents.push(GatewayIntentBits.GuildMembers);
 if (messageIntent) intents.push(GatewayIntentBits.MessageContent);
 
 const client = new Client({
@@ -133,6 +144,12 @@ watchAfk(client, log);
 watchPresence(client);
 routePrefix(client);
 watchSobReactions(client);
+watchLogging(client);
+watchWelcome(client);
+watchRoles(client);
+watchStarboard(client);
+watchAutomod(client);
+watchTickets(client);
 
 /** commands live in category folders — fun, moderation, utility — so walk them. */
 async function collect(dir) {
@@ -207,6 +224,7 @@ client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
   log('counts: data/slink.db.');
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
+  log(membersIntent ? 'members intent: on.' : 'members intent: off — welcome, autoroles and member logs wait for it.');
   log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
   log(`prefix: ${prefix}`);
 

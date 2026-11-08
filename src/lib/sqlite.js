@@ -99,6 +99,20 @@ const schema = `
     score INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (feature, guild_id, user_id)
   ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS config (
+    guild_id TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (guild_id, key)
+  ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS starboards (
+    guild_id TEXT NOT NULL,
+    message_id TEXT NOT NULL,
+    board_id TEXT NOT NULL,
+    PRIMARY KEY (guild_id, message_id)
+  ) WITHOUT ROWID;
 `;
 
 let database = null;
