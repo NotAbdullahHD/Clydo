@@ -1,55 +1,20 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { db } from './db.js';
+import { sql } from './sqlite.js';
 
-/** one last.fm username per discord user — mongo when configured, else json. */
-
-const file = path.join(process.cwd(), 'data', 'lastfm.json');
-let cache = null;
-
-async function load() {
-  if (cache) return cache;
-
-  let raw = {};
-
-  try {
-    raw = JSON.parse(await readFile(file, 'utf8'));
-  } catch {
-    raw = {};
-  }
-
-  cache = { users: raw?.users ?? {} };
-  return cache;
-}
-
-async function save() {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(cache, null, 2)}\n`);
-}
+/** one last.fm username per discord user. */
 
 export async function getUser(userId) {
-  const rows = db()?.collection('lastfm');
+  const row = sql().prepare('SELECT username FROM lastfm WHERE user_id = ?').get(userId);
 
-  if (rows) {
-    const doc = await rows.findOne({ userId });
-    return doc?.username ?? null;
-  }
-
-  const data = await load();
-  return data.users[userId] ?? null;
+  return row?.username ?? null;
 }
 
 export async function setUser(userId, username) {
-  const rows = db()?.collection('lastfm');
-
-  if (rows) {
-    await rows.updateOne({ userId }, { $set: { username } }, { upsert: true });
-    return username;
-  }
-
-  const data = await load();
-  data.users[userId] = username;
-  await save();
+  sql()
+    .prepare(`
+      INSERT INTO lastfm (user_id, username) VALUES (?, ?)
+      ON CONFLICT (user_id) DO UPDATE SET username = excluded.username
+    `)
+    .run(userId, username);
 
   return username;
 }

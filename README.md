@@ -128,7 +128,6 @@ DISCORD_TOKEN=your bot token
 GUILD_ID=optional server id for instant command registration
 PRESENCE_INTENT=false
 MESSAGE_INTENT=false
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/slink?appName=slink
 LASTFM_API_KEY=
 SERPAPI_KEY=
 PREFIX=,
@@ -261,12 +260,15 @@ why `MESSAGE_INTENT=true` is required for prefix commands and not just `/snipe`.
 
 ## storage
 
-sob counts and per-server settings live in mongo when `MONGO_URI` is set — the
-database name comes from the uri path (`/slink`), seven collections (`counts`, `guilds`, `awards`, `flags`, `trivia`, `lastfm`,
-`family`) with a unique index on each key, plus a 30-day ttl that trims the award
-ledger. with no uri, everything falls back to `data/*.json` — sobs, flags, trivia,
-lastfm and family — so a fresh checkout still runs. an existing json file is moved
-into an empty database once and then renamed `.migrated`.
+everything lives in `data/slink.db`, a sqlite file opened at boot, with
+`counts`, `guilds`, `awards`, `scores`, `economy`, `family`, `honeypot`, `afk`,
+`appearance` and `lastfm` tables. the award ledger keeps a 30-day ttl so it
+cannot grow forever, and every balance moves through a single read-change-write
+path. no database server, no connection string: a fresh checkout is a working
+bot.
+
+older installs kept `data/*.json`. on first boot those files are imported once,
+then renamed `.migrated` — the old data is lifted in, not thrown away.
 
 ## snipes and sobs
 

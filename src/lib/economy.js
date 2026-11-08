@@ -1,15 +1,14 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { EmbedBuilder } from 'discord.js';
-import { db } from './db.js';
+import { sql } from './sqlite.js';
 import { palette } from './theme.js';
 
 /**
  * economy — one wallet per user, shared across every server.
  *
- * mongo when MONGO_URI is set, otherwise data/economy.json. every command goes
- * through `update`, so a record is read, changed and written in one place and
- * the cooldowns live next to the money.
+ * every command goes through `update`, so a record is read, changed and written
+ * in one place and the cooldowns live next to the money.
  */
 
 export const currency = 'coins';
@@ -56,10 +55,6 @@ export const card = (title, description) => new EmbedBuilder()
   .setTitle(title)
   .setDescription(description);
 
-const file = path.join(process.cwd(), 'data', 'economy.json');
-
-let cache = null;
-
 const shape = (doc) => ({
   userId: doc.userId,
   name: doc.name ?? null,
@@ -72,52 +67,58 @@ const shape = (doc) => ({
   bonus: { at: Number(doc.bonus?.at) || 0 },
 });
 
-async function load() {
-  if (cache) return cache;
-
-  let raw = {};
-
-  try {
-    raw = JSON.parse(await readFile(file, 'utf8'));
-  } catch {
-    raw = {};
-  }
-
-  cache = { users: raw?.users ?? {} };
-  return cache;
-}
-
-async function save() {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(cache, null, 2)}\n`);
-}
-
-const rows = () => db()?.collection('economy');
-
 /** a user's wallet, empty on first contact. */
 export async function get(userId) {
-  const table = rows();
+  const row = sql().prepare('SELECT * FROM economy WHERE user_id = ?').get(userId);
 
-  if (table) return shape((await table.findOne({ userId })) ?? { userId });
+  if (!row) return shape({ userId });
 
-  const data = await load();
-  return shape(data.users[userId] ?? { userId });
+  return shape({
+    userId: row.user_id,
+    name: row.name,
+    wallet: row.wallet,
+    bank: row.bank,
+    inventory: JSON.parse(row.inventory),
+    daily: { at: row.daily_at, streak: row.daily_streak },
+    work: { at: row.work_at },
+    beg: { at: row.beg_at },
+    bonus: { at: row.bonus_at },
+  });
 }
 
 /** write a whole record back. */
 export async function put(record) {
   const doc = shape(record);
-  const table = rows();
 
-  if (table) {
-    await table.updateOne({ userId: doc.userId }, { $set: doc }, { upsert: true });
-    return doc;
-  }
+  sql()
+    .prepare(`
+      INSERT INTO economy
+        (user_id, name, wallet, bank, inventory, daily_at, daily_streak, work_at, beg_at, bonus_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT (user_id) DO UPDATE SET
+        name = excluded.name,
+        wallet = excluded.wallet,
+        bank = excluded.bank,
+        inventory = excluded.inventory,
+        daily_at = excluded.daily_at,
+        daily_streak = excluded.daily_streak,
+        work_at = excluded.work_at,
+        beg_at = excluded.beg_at,
+        bonus_at = excluded.bonus_at
+    `)
+    .run(
+      doc.userId,
+      doc.name,
+      doc.wallet,
+      doc.bank,
+      JSON.stringify(doc.inventory),
+      doc.daily.at,
+      doc.daily.streak,
+      doc.work.at,
+      doc.beg.at,
+      doc.bonus.at,
+    );
 
-  const data = await load();
-  data.users[doc.userId] = doc;
-
-  await save();
   return doc;
 }
 
@@ -133,32 +134,23 @@ export async function update(userId, change, name = null) {
 
 /** best wallets first, wallet + bank together. */
 export async function top(limit = 10) {
-  const table = rows();
+  const rows = sql()
+    .prepare(`
+      SELECT user_id, name, wallet, bank, wallet + bank AS total
+      FROM economy
+      WHERE wallet + bank > 0
+      ORDER BY total DESC, user_id ASC
+      LIMIT ?
+    `)
+    .all(limit);
 
-  if (table) {
-    const docs = await table.aggregate([
-      { $addFields: { total: { $add: ['$wallet', '$bank'] } } },
-      { $sort: { total: -1 } },
-      { $limit: limit },
-    ]).toArray();
-
-    return docs.map((doc) => ({
-      userId: doc.userId,
-      name: doc.name ?? null,
-      wallet: doc.wallet ?? 0,
-      bank: doc.bank ?? 0,
-      total: doc.total ?? 0,
-    }));
-  }
-
-  const data = await load();
-
-  return Object.values(data.users)
-    .map((row) => shape(row))
-    .map((row) => ({ ...row, total: row.wallet + row.bank }))
-    .filter((row) => row.total > 0)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, limit);
+  return rows.map((row) => ({
+    userId: row.user_id,
+    name: row.name ?? null,
+    wallet: row.wallet,
+    bank: row.bank,
+    total: row.total,
+  }));
 }
 
 /** 12345 → 12,345 */

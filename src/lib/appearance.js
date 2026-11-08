@@ -1,6 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { db } from './db.js';
+import { sql } from './sqlite.js';
 
 /**
  * per-server bot profile.
@@ -13,12 +11,8 @@ import { db } from './db.js';
  * route is called directly — same endpoint, same payload, nothing dropped.
  */
 
-const file = path.join(process.cwd(), 'data', 'appearance.json');
-
 /** discord rejects anything huge, and nobody needs a 20MB avatar. */
 const maxBytes = 5 * 1024 * 1024;
-
-let cache = null;
 
 const shape = (doc) => ({
   guildId: doc.guildId,
@@ -27,52 +21,25 @@ const shape = (doc) => ({
   bio: doc.bio ?? null,
 });
 
-async function load() {
-  if (cache) return cache;
-
-  let raw = {};
-
-  try {
-    raw = JSON.parse(await readFile(file, 'utf8'));
-  } catch {
-    raw = {};
-  }
-
-  cache = { servers: raw?.servers ?? {} };
-  return cache;
-}
-
-async function save() {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(cache, null, 2)}\n`);
-}
-
-const rows = () => db()?.collection('appearance');
-
 /** what this server asked for, not what discord currently holds. */
 export async function get(guildId) {
-  const table = rows();
+  const row = sql().prepare('SELECT avatar, banner, bio FROM appearance WHERE guild_id = ?').get(guildId);
 
-  if (table) return shape((await table.findOne({ guildId })) ?? { guildId });
-
-  const data = await load();
-  return shape(data.servers[guildId] ?? { guildId });
+  return shape({ guildId, ...row });
 }
 
 /** remember the request so the panel and reset know what was set. */
 export async function set(guildId, patch) {
   const next = shape({ ...(await get(guildId)), ...patch });
-  const table = rows();
 
-  if (table) {
-    await table.updateOne({ guildId }, { $set: next }, { upsert: true });
-    return next;
-  }
+  sql()
+    .prepare(`
+      INSERT INTO appearance (guild_id, avatar, banner, bio) VALUES (?, ?, ?, ?)
+      ON CONFLICT (guild_id) DO UPDATE SET
+        avatar = excluded.avatar, banner = excluded.banner, bio = excluded.bio
+    `)
+    .run(next.guildId, next.avatar, next.banner, next.bio);
 
-  const data = await load();
-  data.servers[guildId] = next;
-
-  await save();
   return next;
 }
 

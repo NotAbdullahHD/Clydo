@@ -1,17 +1,11 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { Events } from 'discord.js';
-import { db } from './db.js';
 import { prefix as prefixChar } from './prefix.js';
+import { sql } from './sqlite.js';
 
 /**
  * afk — one record per user, shared across every server, the same shape
- * labubu's User.afk had. mongo when MONGO_URI is set, otherwise data/afk.json.
+ * labubu's User.afk had.
  */
-
-const file = path.join(process.cwd(), 'data', 'afk.json');
-
-let cache = null;
 
 const shape = (doc) => ({
   isAfk: Boolean(doc?.isAfk),
@@ -19,68 +13,32 @@ const shape = (doc) => ({
   at: doc?.at ?? null,
 });
 
-async function load() {
-  if (cache) return cache;
-
-  let raw = {};
-
-  try {
-    raw = JSON.parse(await readFile(file, 'utf8'));
-  } catch {
-    raw = {};
-  }
-
-  cache = { afk: raw?.afk ?? {} };
-  return cache;
-}
-
-async function save() {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(cache, null, 2)}\n`);
-}
-
-const rows = () => db()?.collection('afk');
-
 /** mark a user afk. returns when it started. */
 export async function set(userId, reason) {
   const at = Date.now();
-  const table = rows();
 
-  if (table) {
-    await table.updateOne({ userId }, { $set: { isAfk: true, reason, at } }, { upsert: true });
-    return at;
-  }
+  sql()
+    .prepare(`
+      INSERT INTO afk (user_id, is_afk, reason, at) VALUES (?, 1, ?, ?)
+      ON CONFLICT (user_id) DO UPDATE SET is_afk = 1, reason = excluded.reason, at = excluded.at
+    `)
+    .run(userId, reason, at);
 
-  const data = await load();
-  data.afk[userId] = { isAfk: true, reason, at };
-
-  await save();
   return at;
 }
 
 /** a user's record, empty when they have never gone afk. */
 export async function get(userId) {
-  const table = rows();
-  if (table) return shape(await table.findOne({ userId }));
+  const row = sql().prepare('SELECT is_afk, reason, at FROM afk WHERE user_id = ?').get(userId);
 
-  const data = await load();
-  return shape(data.afk[userId]);
+  return shape(row ? { isAfk: row.is_afk, reason: row.reason, at: row.at } : null);
 }
 
 /** clear it — on their next message, or on request. */
 export async function clear(userId) {
-  const table = rows();
-
-  if (table) {
-    await table.updateOne({ userId }, { $set: { isAfk: false, reason: null, at: null } });
-    return;
-  }
-
-  const data = await load();
-  if (!data.afk[userId]) return;
-
-  data.afk[userId] = { isAfk: false, reason: null, at: null };
-  await save();
+  sql()
+    .prepare('UPDATE afk SET is_afk = 0, reason = NULL, at = NULL WHERE user_id = ?')
+    .run(userId);
 }
 
 /** discord relative time, so "went afk 2 hours ago" stays accurate. */

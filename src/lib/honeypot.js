@@ -1,8 +1,6 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { ChannelType, EmbedBuilder, Events, PermissionFlagsBits } from 'discord.js';
-import { db } from './db.js';
 import { report } from './errors.js';
+import { sql } from './sqlite.js';
 import { palette } from './theme.js';
 
 /**
@@ -16,8 +14,6 @@ import { palette } from './theme.js';
  * members who could plausibly be staff are never touched — a false ban on a real
  * person costs more than a missed bot.
  */
-
-const file = path.join(process.cwd(), 'data', 'honeypot.json');
 
 /** punishment → how the notice words it, and which counter it feeds. */
 const kinds = Object.freeze({
@@ -45,52 +41,47 @@ const shape = (doc = {}) => ({
   counts: { ...blank(), ...(doc.counts ?? {}) },
 });
 
-const collection = () => db()?.collection('honeypot');
-
-let cache = null;
-
-async function load() {
-  if (cache) return cache;
-
-  let raw = {};
-
-  try {
-    raw = JSON.parse(await readFile(file, 'utf8'));
-  } catch {
-    raw = {};
-  }
-
-  cache = { guilds: raw?.guilds ?? {} };
-  return cache;
-}
-
-async function save() {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(cache, null, 2)}\n`);
-}
-
 export async function get(guildId) {
-  const table = collection();
+  const row = sql().prepare('SELECT * FROM honeypot WHERE guild_id = ?').get(guildId);
 
-  if (table) return shape((await table.findOne({ guildId })) ?? { guildId });
+  if (!row) return shape({ guildId });
 
-  const data = await load();
-  return shape(data.guilds[guildId] ?? { guildId });
+  return shape({
+    guildId: row.guild_id,
+    enabled: row.enabled,
+    channelId: row.channel_id,
+    noticeId: row.notice_id,
+    punishment: row.punishment,
+    message: row.message,
+    counts: JSON.parse(row.counts),
+  });
 }
 
 export async function set(guildId, patch) {
   const next = shape({ ...(await get(guildId)), ...patch, guildId });
-  const table = collection();
 
-  if (table) {
-    await table.updateOne({ guildId }, { $set: next }, { upsert: true });
-    return next;
-  }
+  sql()
+    .prepare(`
+      INSERT INTO honeypot (guild_id, enabled, channel_id, notice_id, punishment, message, counts)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT (guild_id) DO UPDATE SET
+        enabled = excluded.enabled,
+        channel_id = excluded.channel_id,
+        notice_id = excluded.notice_id,
+        punishment = excluded.punishment,
+        message = excluded.message,
+        counts = excluded.counts
+    `)
+    .run(
+      next.guildId,
+      next.enabled ? 1 : 0,
+      next.channelId,
+      next.noticeId,
+      next.punishment,
+      next.message,
+      JSON.stringify(next.counts),
+    );
 
-  const data = await load();
-  data.guilds[guildId] = next;
-
-  await save();
   return next;
 }
 

@@ -17,13 +17,13 @@ import { watch as watchAfk } from './lib/afk.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
-import { connect } from './lib/db.js';
+import { open as openStore } from './lib/sqlite.js';
+import { migrate as migrateJson } from './lib/import-json.js';
 import { install as installComponentsV2 } from './lib/components.js';
 import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
 import { watch as watchSnipes } from './lib/snipes.js';
-import { migrateFromJson } from './lib/sobs.js';
 import { panel } from './lib/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -92,12 +92,13 @@ if (holder) {
 
 process.on('exit', release);
 
-const mongo = await connect(process.env.MONGO_URI?.trim(), 'slink', log);
+// sqlite is the store now. json files from the mongo era are lifted in once,
+// then parked as *.migrated so a restart cannot import them over live data.
+openStore();
+log('store: data/slink.db (sqlite).');
 
-if (mongo) {
-  const migrated = await migrateFromJson();
-  if (migrated) log(`migrated ${migrated} sob count(s) into mongo.`);
-}
+const imported = await migrateJson(log);
+if (imported) log(`imported ${imported} row(s) from data/*.json.`);
 
 /**
  * guilds + guild messages is all a slash-command bot needs. a privileged intent
@@ -204,7 +205,7 @@ async function registerCommands() {
 
 client.once(Events.ClientReady, async (ready) => {
   log(`online as ${ready.user.tag}.`);
-  log(mongo ? 'counts: mongo.' : 'counts: data/sobs.json.');
+  log('counts: data/slink.db.');
   log(presenceIntent ? 'presence intent: on.' : 'presence intent: off.');
   log(messageIntent ? 'message content intent: on.' : 'message content intent: off.');
   log(`prefix: ${prefix}`);
