@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
@@ -19,6 +19,7 @@ import { prefix, route as routePrefix } from './lib/prefix.js';
 import { watch as watchSobReactions } from './lib/reactions.js';
 import { connect } from './lib/db.js';
 import { install as installComponentsV2 } from './lib/components.js';
+import { handleSearch } from './lib/browser.js';
 import { claim, release } from './lib/single.js';
 import { rotate, watch as watchPresence } from './lib/presence.js';
 import { watch as watchSnipes } from './lib/snipes.js';
@@ -122,6 +123,9 @@ log(`components v2: ${installComponentsV2()} reply path(s) wrapped.`);
 client.commands = new Collection();
 /** command name → its folder, so /help can group them into modules. */
 client.categories = new Map();
+/** docstrings, so prefix-only commands can describe themselves and show usage. */
+client.about = new Map();
+client.usage = new Map();
 watchSnipes(client);
 watchHoneypot(client);
 watchAfk(client, log);
@@ -158,6 +162,14 @@ async function loadCommands() {
       if (!name || (!slashable && !prefixable)) {
         log(`skipped ${path.basename(file)} — needs "data"+"execute", "prefix", or both.`);
         continue;
+      }
+
+      const source = await readFile(file, 'utf8').catch(() => '');
+      const doc = source.match(/\/\*\*\s*`([^`]+)`\s*(?:—|-)\s*([^*]+?)\s*\*\//);
+
+      if (doc) {
+        client.usage.set(name, doc[1].trim());
+        client.about.set(name, doc[2].replace(/\s+/g, ' ').trim());
       }
 
       client.commands.set(name, module);
@@ -211,6 +223,11 @@ client.once(Events.ClientReady, async (ready) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isModalSubmit()) {
+    await handleSearch(interaction, client);
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);

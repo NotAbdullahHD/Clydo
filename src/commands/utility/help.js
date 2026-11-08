@@ -5,6 +5,7 @@ import {
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { get as appearance } from '../../lib/appearance.js';
+import { open as openBrowser } from '../../lib/browser.js';
 import { prefix as prefixChar } from '../../lib/prefix.js';
 import { block, entry, panel } from '../../lib/theme.js';
 
@@ -19,8 +20,9 @@ export const data = new SlashCommandBuilder()
 
 const home = 'home';
 
-const describe = (command) => command.data?.description
-  ?? (typeof command.prefix === 'function' ? 'prefix command' : '');
+const describe = (client, name) => client.about?.get(name)
+  ?? client.commands.get(name)?.data?.description
+  ?? (typeof client.commands.get(name)?.prefix === 'function' ? 'prefix command' : '');
 
 function grouped(client) {
   const map = new Map();
@@ -87,7 +89,7 @@ function detail(client, name) {
 
   return panel({
     title: `slink help — ${name}`,
-    description: block(entry('module', module), entry('usage', `\`${usage}\``), entry('does', describe(command) || 'nothing documented')),
+    description: block(entry('module', module), entry('usage', `\`${usage}\``), entry('does', describe(client, name) || 'nothing documented')),
   });
 }
 
@@ -118,8 +120,13 @@ export async function prefix(message, args) {
   if (name) {
     const embed = detail(message.client, name);
 
+    if (!embed) {
+      await openBrowser(message, name);
+      return;
+    }
+
     await message.reply({
-      embeds: [embed ?? panel({ title: 'help', description: `\`›\` no command called **${name}**.` })],
+      embeds: [embed],
       allowedMentions: { parse: [] },
     });
     return;

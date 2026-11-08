@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { flags } from '../../lib/flag-list.js';
 import { addPoint, board, total } from '../../lib/flags.js';
-import { palette } from '../../lib/theme.js';
+import { marks, palette } from '../../lib/theme.js';
 
 /**
  * guess the flag — kept as labubu had it.
@@ -20,7 +20,25 @@ const window = 10_000;
 /** channel id → the running round, shared with `,flaghint`. */
 export const rounds = new Map();
 
-const iso = (code) => `https://flagcdn.com/w320/${code}.png`;
+const iso = (code) => `https://flagcdn.com/w640/${code}.png`;
+
+/** three bands, by how long the country name is — greed labels difficulty too. */
+const difficulty = (country) => (country.length <= 5 ? 'easy' : country.length <= 9 ? 'medium' : 'hard');
+
+export const card = (message, flag) => new EmbedBuilder()
+  .setAuthor({
+    name: message.author.username,
+    iconURL: message.author.displayAvatarURL({ size: 64 }),
+  })
+  .setTitle('Guess the Flag')
+  .setDescription([
+    `**difficulty** ${difficulty(flag[1])}`,
+    'You have 10 seconds to guess the country.',
+    'Type your answer in the chat.',
+    `\`${marks.accent}\` \`,flaghint\` for a hint`,
+  ].join('\n'))
+  .setImage(iso(flag[0]))
+  .setColor(palette.panel);
 
 /** lower-case, punctuation flattened — `sri lanka.` and `Sri  Lanka` match. */
 const normalize = (text) => String(text ?? '')
@@ -68,11 +86,7 @@ export async function prefix(message) {
   const flag = flags[Math.floor(Math.random() * flags.length)];
   const answers = answersOf(flag);
 
-  const embed = new EmbedBuilder()
-    .setTitle('Guess the Flag')
-    .setDescription('You have 10 seconds to guess! try `,flaghint`')
-    .setThumbnail(iso(flag[0]))
-    .setColor(palette.panel);
+  const embed = card(message, flag);
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`flag_hint_${channelId}`).setEmoji('❓').setStyle(ButtonStyle.Secondary),

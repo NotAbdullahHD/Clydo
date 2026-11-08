@@ -1,4 +1,5 @@
 import { Events } from 'discord.js';
+import { open as openBrowser } from './browser.js';
 import { failMessage } from './errors.js';
 
 /**
@@ -28,7 +29,14 @@ export function route(client) {
       (candidate) => typeof candidate.prefix === 'function' && namesOf(candidate).includes(name),
     );
 
-    if (!command) return;
+    if (!command) {
+      // a typo gets the closest command rather than silence. the shape check
+      // keeps casual `, hello` chatter from opening a card.
+      if (/^[a-z0-9_-]{2,}$/.test(name)) {
+        await openBrowser(message, name).catch(() => {});
+      }
+      return;
+    }
 
     try {
       await command.prefix(message, args, client);
