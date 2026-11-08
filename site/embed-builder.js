@@ -140,6 +140,20 @@ document.querySelector('#copy-json')?.addEventListener('click', async (event) =>
   }, 1500);
 });
 
+document.querySelector('#welcome-example')?.addEventListener('click', () => {
+  document.querySelector('#author').value = 'slink';
+  document.querySelector('#title').value = 'welcome in';
+  document.querySelector('#desc').value = 'good to have you — grab a role from the picker and say hello below.\n\nquestions go in the chat, someone will answer.';
+  document.querySelector('#footer').value = 'member 1,204';
+  document.querySelector('#color').value = '#8d7bb4';
+  document.querySelector('#thumb').value = '';
+  document.querySelectorAll('.field-block').forEach((block) => block.remove());
+  document.querySelectorAll('.dot-btn').forEach((dot) => {
+    dot.setAttribute('aria-pressed', String(dot.dataset.color === '#8d7bb4'));
+  });
+  paint();
+});
+
 document.querySelector('#reset')?.addEventListener('click', () => {
   form.reset();
   document.querySelectorAll('.field-block').forEach((block) => block.remove());

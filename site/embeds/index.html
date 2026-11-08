@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>embed builder — slink</title>
-<meta name="description" content="compose an embed, watch it render, copy the json. slink will accept it once the command lands.">
+<meta name="description" content="compose an embed, watch it render, copy the json, then run /embed with it in discord.">
 <meta name="theme-color" content="#08090b">
 <link rel="icon" href="/assets/pfp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,11 +36,11 @@
   <div class="wrap">
 
     <div class="page-head">
-      <p class="eyebrow rise"><span class="dot"></span> builder <b>·</b> not wired to the bot yet</p>
+      <p class="eyebrow rise"><span class="dot"></span> builder <b>·</b> paste straight into <code class="kbd">/embed</code></p>
       <h1 class="rise" style="--d: 50ms">embed builder</h1>
       <p class="lede rise" style="--d: 100ms; margin-left: 0">
-        write it here, watch it land in the preview, copy the json. once the command exists
-        in slink, this is exactly the payload it will take.
+        write it here, watch it land in the preview, copy the json. slink takes it as-is —
+        <code class="kbd">/embed</code> drops it in the channel, or point it at another one.
       </p>
     </div>
 
@@ -114,7 +114,10 @@
       <div class="preview-sticky">
         <div class="sheet-head" style="margin: 0">
           <h2>preview</h2>
-          <button class="mini" id="reset" type="button">reset</button>
+          <span style="display: flex; gap: 8px">
+            <button class="mini" id="welcome-example" type="button">welcome example</button>
+            <button class="mini" id="reset" type="button">reset</button>
+          </span>
         </div>
 
         <div id="preview"></div>
@@ -127,8 +130,8 @@
         <pre class="json" id="json"></pre>
 
         <p class="counter" style="text-align: left; line-height: 1.7">
-          this is the shape slink will store and send — colour is an int, fields keep their
-          inline flag. sending from the page comes with the command, not before it.
+          this is the shape slink takes — colour is an int, fields keep their inline flag.
+          paste it into <code class="kbd">/embed</code>; the 6000 character budget is the whole limit.
         </p>
       </div>
 
