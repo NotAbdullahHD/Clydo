@@ -13,6 +13,8 @@ import {
   Routes,
 } from 'discord.js';
 import { watch as watchHoneypot } from './lib/honeypot.js';
+import { watch as watchPoj } from './lib/poj.js';
+import { watch as watchSticky } from './lib/sticky.js';
 import { watch as watchAfk } from './lib/afk.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
@@ -151,6 +153,8 @@ routePrefix(client);
 watchSobReactions(client);
 watchLogging(client);
 watchWelcome(client);
+watchPoj(client);
+watchSticky(client);
 watchRoles(client);
 watchStarboard(client);
 watchAutomod(client);
