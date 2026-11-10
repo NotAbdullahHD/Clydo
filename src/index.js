@@ -15,6 +15,8 @@ import {
 import { watch as watchHoneypot } from './lib/honeypot.js';
 import { watch as watchPoj } from './lib/poj.js';
 import { watch as watchSticky } from './lib/sticky.js';
+import { watch as watchLevels } from './lib/levels.js';
+import { watch as watchVoice } from './lib/activity.js';
 import { watch as watchAfk } from './lib/afk.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
@@ -155,6 +157,8 @@ watchLogging(client);
 watchWelcome(client);
 watchPoj(client);
 watchSticky(client);
+watchLevels(client);
+watchVoice(client);
 watchRoles(client);
 watchStarboard(client);
 watchAutomod(client);

@@ -113,6 +113,30 @@ const schema = `
     board_id TEXT NOT NULL,
     PRIMARY KEY (guild_id, message_id)
   ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS levels (
+    guild_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    xp INTEGER NOT NULL DEFAULT 0,
+    at INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (guild_id, user_id)
+  ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS activity (
+    guild_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    day TEXT NOT NULL,
+    messages INTEGER NOT NULL DEFAULT 0,
+    voice INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (guild_id, user_id, day)
+  ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS voice (
+    guild_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    seconds INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (guild_id, user_id)
+  ) WITHOUT ROWID;
 `;
 
 let database = null;
