@@ -1,4 +1,5 @@
-import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { font } from './fonts.js';
 
 /**
  * the ship card.
@@ -7,8 +8,8 @@ import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
  * avatars in thick pink rings, a vector heart carrying the score between them,
  * a fill bar underneath and the handles plus caption at the bottom.
  *
- * fonts come from the host because the renderer ships none — the register call
- * is best-effort and falls back to the platform sans.
+ * fonts come from `fonts.js` — the renderer ships none, so a host without a
+ * match draws in the platform sans instead.
  */
 
 const WIDTH = 720;
@@ -21,25 +22,6 @@ const pink = {
   deep: '#d92f68',
 };
 
-const families = { regular: 'slink-sans', bold: 'slink-sans-bold' };
-let hasFonts = false;
-
-for (const [path, name] of [
-  ['C:/Windows/Fonts/segoeui.ttf', families.regular],
-  ['C:/Windows/Fonts/segoeuib.ttf', families.bold],
-  ['C:/Windows/Fonts/arial.ttf', families.regular],
-  ['C:/Windows/Fonts/arialbd.ttf', families.bold],
-  ['/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', families.regular],
-  ['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', families.bold],
-]) {
-  try {
-    if (GlobalFonts.registerFromPath(path, name)) hasFonts = true;
-  } catch {
-    // a missing host font is not a failure; the fallback below covers it.
-  }
-}
-
-const font = (size, bold = false) => `${bold ? 'bold ' : ''}${size}px ${hasFonts ? (bold ? families.bold : families.regular) : 'sans-serif'}`;
 
 function rounded(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);

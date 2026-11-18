@@ -24,11 +24,26 @@ const alive = (pid) => {
   }
 };
 
+/**
+ * a live pid is only proof of another bot when the process behind it is one.
+ * a panel recreates a container with fresh pids, so the number in this file can
+ * point at something unrelated that happens to be running — trusting it would
+ * refuse to start after an ordinary restart. on linux the command line settles
+ * it; where /proc cannot be read the plain liveness check still stands.
+ */
+const isBot = (pid) => {
+  try {
+    return readFileSync(`/proc/${pid}/cmdline`, 'utf8').includes('index.js');
+  } catch {
+    return alive(pid);
+  }
+};
+
 /** returns the pid already running, or null once this process owns the lock. */
 export function claim() {
   try {
     const pid = Number(readFileSync(file, 'utf8').trim());
-    if (pid && pid !== process.pid && alive(pid)) return pid;
+    if (pid && pid !== process.pid && isBot(pid)) return pid;
   } catch {
     // no lock file, or unreadable — claim it.
   }

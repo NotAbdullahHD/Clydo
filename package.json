@@ -6,7 +6,7 @@
   "type": "module",
   "main": "src/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning src/index.js",

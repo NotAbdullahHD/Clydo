@@ -1,4 +1,5 @@
 import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { font } from './fonts.js';
 
 /**
  * the album grid.
@@ -28,7 +29,7 @@ export async function collage({ albums, size = 3, heading = null }) {
 
   if (heading) {
     context.fillStyle = '#8d7bb4';
-    context.font = '600 20px segoeui, arial';
+    context.font = font(20, false, '600');
     context.fillText(heading, pad, pad + 22);
   }
 
@@ -60,7 +61,7 @@ export async function collage({ albums, size = 3, heading = null }) {
       context.fillRect(x, y, tile, tile);
 
       context.fillStyle = '#8a8d93';
-      context.font = '600 16px segoeui, arial';
+      context.font = font(16, false, '600');
 
       const words = String(album.name ?? 'album').split(/\s+/);
       let line = 0;
@@ -81,11 +82,11 @@ export async function collage({ albums, size = 3, heading = null }) {
     context.fillRect(x, y + tile - 64, tile, 64);
 
     context.fillStyle = '#ffffff';
-    context.font = '600 15px segoeui, arial';
+    context.font = font(15, false, '600');
     context.fillText(String(album.name ?? '').slice(0, 26), x + 12, y + tile - 26);
 
     context.fillStyle = '#c9cbd1';
-    context.font = '400 13px segoeui, arial';
+    context.font = font(13, false, '400');
     context.fillText(String(album.artist ?? '').slice(0, 28), x + 12, y + tile - 10);
 
     context.restore();
