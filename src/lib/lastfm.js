@@ -13,9 +13,9 @@ const endpoint = 'https://ws.audioscrobbler.com/2.0/';
 
 export const configured = () => Boolean(process.env.LASTFM_API_KEY?.trim());
 
-export const defaultTemplate = '**{track}**\n{artist}  ·  {album}';
+export const defaultTemplate = '*{artist}*  ·  **{album}**';
 
-export const variables = ['{track}', '{artist}', '{album}', '{plays}', '{user}', '{url}', '{playing}'];
+export const variables = ['{track}', '{artist}', '{album}', '{plays}', '{scrobbles}', '{user}', '{url}', '{playing}'];
 
 export async function call(method, params = {}) {
   const key = process.env.LASTFM_API_KEY?.trim();
@@ -85,6 +85,19 @@ export async function recent(username) {
     album: track.album?.['#text'] ?? '',
     art: track.image?.at(-1)?.['#text'] || null,
     url: track.url ?? null,
+    date: track.date?.uts ? Number(track.date.uts) * 1000 : null,
+  };
+}
+
+/** the total scrobbles on an account — the number a card sits on. */
+export async function profile(username) {
+  const data = await call('user.getinfo', { user: username });
+  const info = data?.user ?? {};
+
+  return {
+    name: info.name ?? username,
+    plays: Number(info.playcount ?? 0),
+    since: info.registered?.unixtime ? Number(info.registered.unixtime) * 1000 : null,
   };
 }
 
@@ -93,7 +106,13 @@ export async function artistPlays(username, artist) {
   const data = await call('artist.getinfo', { artist, username });
   const plays = Number(data?.artist?.stats?.userplaycount ?? 0);
 
-  return { plays: Number.isFinite(plays) ? plays : 0, name: data?.artist?.name ?? artist };
+  return {
+    plays: Number.isFinite(plays) ? plays : 0,
+    name: data?.artist?.name ?? artist,
+    art: data?.artist?.image?.at(-1)?.['#text'] || null,
+    listeners: Number(data?.artist?.stats?.listeners ?? 0),
+    total: Number(data?.artist?.stats?.playcount ?? 0),
+  };
 }
 
 /** the albums somebody plays most, with cover art, for a chart. */

@@ -7,6 +7,7 @@ import {
   configured,
   defaultTemplate,
   getUser,
+  profile,
   recent,
   setStyle,
   setUser,
@@ -15,7 +16,7 @@ import {
   variables,
 } from '../../lib/lastfm.js';
 import { no, ok } from '../../lib/line.js';
-import { palette } from '../../lib/theme.js';
+import { palette, since } from '../../lib/theme.js';
 
 /**
  * `,fm [@user]` — what somebody is playing, and `,fm set|template|react` for the card.
@@ -25,7 +26,7 @@ export const name = 'fm';
 export const names = ['nowplaying', 'np'];
 
 const fill = (template, fields) => template.replace(
-  /\{(track|artist|album|plays|user|url|playing)\}/gi,
+  /\{(track|artist|album|plays|scrobbles|user|url|playing)\}/gi,
   (whole, key) => fields[key.toLowerCase()] ?? whole,
 );
 
@@ -121,7 +122,10 @@ export async function prefix(message, args) {
     return;
   }
 
-  const plays = await artistPlays(username, track.artist).then((found) => found.plays).catch(() => null);
+  const [plays, info] = await Promise.all([
+    artistPlays(username, track.artist).then((found) => found.plays).catch(() => null),
+    profile(username).then((found) => found.plays).catch(() => null),
+  ]);
   const layout = style(target.id);
 
   const fields = {
@@ -129,16 +133,31 @@ export async function prefix(message, args) {
     artist: track.artist,
     album: track.album || 'single',
     plays: plays === null ? '—' : plays.toLocaleString('en-US'),
+    scrobbles: info === null ? '—' : info.toLocaleString('en-US'),
     user: username,
     url: track.url ?? `https://www.last.fm/user/${username}`,
     playing: track.playing ? 'now playing' : 'last played',
   };
 
+  const when = track.playing
+    ? 'now playing'
+    : track.date ? `last played ${since(track.date)}` : 'last played';
+
   const box = shell(await accent({ guildId: message.guildId, userId: target.id, member: message.guild.members.cache.get(target.id) }));
-  heading(box, { title: `${username}`, note: fields.playing, avatar: track.art ?? null });
+  heading(box, {
+    title: track.track,
+    note: `${when}  ·  for ${target.username}`,
+    avatar: track.art ?? null,
+  });
   box.addSeparatorComponents(rule());
   box.addTextDisplayComponents(text(fill(layout.template, fields)));
-  box.addTextDisplayComponents(quiet(`artist plays ${fields.plays}`));
+
+  const tally = [
+    info === null ? null : `**${fields.scrobbles}** scrobbles`,
+    plays === null ? null : `**${fields.plays}** plays of this artist`,
+  ].filter(Boolean).join('  ·  ');
+
+  if (tally) box.addTextDisplayComponents(quiet(tally));
 
   const sent = await message.reply({ ...payload(box), allowedMentions: { parse: [] } }).catch(() => null);
 
