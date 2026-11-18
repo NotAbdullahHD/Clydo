@@ -1,4 +1,5 @@
 import { Events } from 'discord.js';
+import { resolve as resolveAlias } from './alias.js';
 import { open as openBrowser } from './browser.js';
 import { failMessage } from './errors.js';
 
@@ -25,9 +26,15 @@ export function route(client) {
     const name = rawName?.toLowerCase();
     if (!name) return;
 
-    const command = client.commands.find(
+    let command = client.commands.find(
       (candidate) => typeof candidate.prefix === 'function' && namesOf(candidate).includes(name),
     );
+
+    /* a server alias is a second name for a command that already exists. */
+    if (!command && message.guildId) {
+      const target = resolveAlias(message.guildId, name);
+      if (target) command = client.commands.get(target);
+    }
 
     if (!command) {
       // a typo gets the closest command rather than silence. the shape check

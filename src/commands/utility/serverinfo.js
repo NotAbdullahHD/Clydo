@@ -4,6 +4,7 @@ import { since } from '../../lib/theme.js';
 /** `,serverinfo` — parameters for the server the message came from. */
 
 export const name = 'serverinfo';
+export const names = ['si', 'guildinfo'];
 
 export async function prefix(message) {
   const { guild } = message;

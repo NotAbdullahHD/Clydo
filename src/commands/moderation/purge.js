@@ -6,6 +6,7 @@ import { palette } from '../../lib/theme.js';
 /** `,purge 1-100` — bulk delete, and it asks before it does. */
 
 export const name = 'purge';
+export const names = ['c'];
 
 const maxAgeDays = 14;
 

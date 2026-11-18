@@ -94,8 +94,8 @@ export function since(date, now = Date.now()) {
  * build a slink embed.
  * titles, field names and footers are lower-cased automatically.
  */
-export function panel({ title, description, fields = [], footer } = {}) {
-  const embed = new EmbedBuilder().setColor(palette.panel);
+export function panel({ title, description, fields = [], footer, accent = null } = {}) {
+  const embed = new EmbedBuilder().setColor(accent ?? palette.panel);
 
   if (title) embed.setTitle(lower(title));
   if (description) embed.setDescription(description);

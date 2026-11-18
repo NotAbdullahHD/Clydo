@@ -4,6 +4,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
+import { of as aliasOf } from '../../lib/alias.js';
 import { get as appearance } from '../../lib/appearance.js';
 import { open as openBrowser } from '../../lib/browser.js';
 import { facts, heading, listing, payload, quiet, rule, shell } from '../../lib/card.js';
@@ -17,6 +18,8 @@ import { prefix as prefixChar } from '../../lib/prefix.js';
 export const data = new SlashCommandBuilder()
   .setName('help')
   .setDescription('list everything slink can do');
+
+export const names = ['h', 'commands'];
 
 const home = 'home';
 
@@ -83,12 +86,16 @@ export function build(client, selected = home, look = null) {
   return payload(box);
 }
 
-function detail(client, name) {
+function detail(client, name, guildId = null) {
   const command = client.commands.get(name);
   if (!command) return null;
 
   const module = client.categories?.get(name) ?? 'core';
   const usage = command.data ? `/${name}` : `${prefixChar}${name}`;
+  const shorts = [
+    ...(command.names ?? []).filter((short) => short !== name),
+    ...(guildId ? aliasOf(guildId, name) : []),
+  ];
 
   const box = shell();
   heading(box, { title: `slink help — ${name}` });
@@ -97,6 +104,7 @@ function detail(client, name) {
     ['module', module],
     ['usage', `\`${usage}\``],
     ['does', describe(client, name) || 'nothing documented'],
+    shorts.length ? ['also', shorts.map((short) => `\`${prefixChar}${short}\``).join('  ')] : null,
   ]));
 
   return payload(box);
@@ -124,7 +132,7 @@ export async function prefix(message, args) {
   const name = args[0]?.toLowerCase();
 
   if (name) {
-    const found = detail(message.client, name);
+    const found = detail(message.client, name, message.guildId ?? null);
 
     if (!found) {
       await openBrowser(message, name);

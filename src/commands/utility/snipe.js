@@ -1,50 +1,66 @@
 import { GatewayIntentBits } from 'discord.js';
-import { peek } from '../../lib/snipes.js';
-import { panel, section, sections, since } from '../../lib/theme.js';
+import { all, peek } from '../../lib/snipes.js';
+import { open as pager } from '../../lib/pager.js';
+import { no } from '../../lib/line.js';
+import { heading, payload, quiet, rule, shell, text } from '../../lib/card.js';
+import { palette, since } from '../../lib/theme.js';
 
-/** `,snipe` — the last deleted message in this channel. */
+/**
+ * `,snipe [n]` — a deleted message, newest by default.
+ */
 
 export const name = 'snipe';
+export const names = ['s'];
 
-/** resolved from the portal at boot, so ask the client rather than the env. */
-const contentOn = (client) =>
-  client?.options?.intents?.has?.(GatewayIntentBits.MessageContent) ?? false;
+const contentOn = (client) => client?.options?.intents?.has?.(GatewayIntentBits.MessageContent) ?? false;
 
-export async function prefix(message) {
-  const record = peek(message.channelId);
+const line = (record, index) => {
+  const body = record.text ? `> ${record.text.replace(/\n/g, '\n> ')}` : '> no text';
+  return `**${index + 1}. ${record.author}**  ·  ${since(record.at)}\n${body}`;
+};
 
-  if (!record) {
-    await message.reply({
-      embeds: [
-        panel({
-          title: 'snipe',
-          description: section({ heading: 'snipes', rows: [['last', 'nothing deleted here yet']] }),
-          footer: 'raw memory. no noise.',
-        }),
-      ],
-    });
+function card(message, record) {
+  const box = shell(palette.panel);
+  heading(box, { title: 'snipe', note: `${record.author}  ·  ${since(record.at)}` });
+  box.addSeparatorComponents(rule());
+  box.addTextDisplayComponents(text(record.text || 'no text'));
+  if (record.attachment) box.addTextDisplayComponents(quiet(record.attachment));
+  if (!contentOn(message.client)) box.addTextDisplayComponents(quiet('message content intent is off — text may be missing'));
+
+  return payload(box);
+}
+
+export async function prefix(message, args) {
+  const history = all(message.channelId, 'delete');
+
+  if (!history.length) {
+    await message.reply(no('nothing deleted here yet.'));
     return;
   }
 
-  const rows = [
-    ['author', `${record.author}  (${record.id})`],
-    ['sent', since(record.at)],
-    ['text', record.text || 'no text'],
-  ];
+  const wanted = Number.parseInt(args[0] ?? '', 10);
 
-  if (record.attachment) rows.push(['attachment', record.attachment]);
-  if (!contentOn(message.client)) {
-    rows.push(['note', 'message content intent is off — text may be missing']);
+  if (Number.isFinite(wanted) && wanted > 0) {
+    const record = peek(message.channelId, 'delete', wanted - 1);
+
+    if (!record) {
+      await message.reply(no(`only ${history.length} deleted message${history.length === 1 ? '' : 's'} here.`));
+      return;
+    }
+
+    await message.reply({ ...card(message, record), allowedMentions: { parse: [] } });
+    return;
   }
 
-  await message.reply({
-    embeds: [
-      panel({
-        title: 'snipe',
-        description: sections(section({ heading: 'deleted', rows })),
-        footer: 'raw memory. no noise.',
-      }),
-    ],
-    allowedMentions: { parse: [] },
+  const pages = [];
+
+  for (let offset = 0; offset < history.length; offset += 5) {
+    pages.push(history.slice(offset, offset + 5).map((record, index) => line(record, offset + index)));
+  }
+
+  await pager(message, {
+    title: 'snipe',
+    note: `${history.length} deleted · try ,snipe 2`,
+    pages,
   });
 }

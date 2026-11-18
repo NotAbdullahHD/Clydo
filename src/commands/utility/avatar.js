@@ -3,6 +3,7 @@ import { panel } from '../../lib/theme.js';
 /** `,avatar [@user]` — their avatar at 1024. */
 
 export const name = 'avatar';
+export const names = ['av', 'pfp'];
 
 export async function prefix(message) {
   const user = message.mentions.users.first() ?? message.author;

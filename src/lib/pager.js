@@ -2,17 +2,31 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { heading, listing, payload, quiet, rule, shell } from './card.js';
 
 /**
- * lists page. nothing in slink dumps a whole table into one message: the caller
- * hands over pre-sliced pages and this renders one at a time, with the buttons
- * disabled once the menu is closed or the two minutes are up.
+ * lists page.
+ *
+ * nothing in slink dumps a whole table into one message: the caller hands over
+ * pre-sliced pages and this renders one at a time. three grey buttons — back,
+ * forward, trash — and only the person who ran the command can press them.
  */
 
 const window = 120_000;
 
 const controls = (at, size, disabled = false) => new ActionRowBuilder().addComponents(
-  new ButtonBuilder().setCustomId('page:prev').setLabel('‹').setStyle(ButtonStyle.Secondary).setDisabled(disabled || at === 0),
-  new ButtonBuilder().setCustomId('page:next').setLabel('›').setStyle(ButtonStyle.Secondary).setDisabled(disabled || at >= size - 1),
-  new ButtonBuilder().setCustomId('page:close').setLabel('close').setStyle(ButtonStyle.Danger).setDisabled(disabled),
+  new ButtonBuilder()
+    .setCustomId('page:prev')
+    .setEmoji('◀')
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(disabled || at === 0),
+  new ButtonBuilder()
+    .setCustomId('page:next')
+    .setEmoji('▶')
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(disabled || at >= size - 1),
+  new ButtonBuilder()
+    .setCustomId('page:close')
+    .setEmoji('🗑')
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(disabled),
 );
 
 function view({ title, note, empty = 'nothing here yet.' }, pages, at, closed = false) {

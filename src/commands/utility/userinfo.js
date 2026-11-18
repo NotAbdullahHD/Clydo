@@ -1,9 +1,11 @@
 import { ActivityType } from 'discord.js';
+import { accent } from '../../lib/paint.js';
 import { panel, section, sections, since } from '../../lib/theme.js';
 
 /** `,userinfo [@user]` — account and presence data, defaults to you. */
 
 export const name = 'userinfo';
+export const names = ['ui', 'whois'];
 
 /** discord's raw status keys read badly in a text block. */
 const statuses = Object.freeze({
@@ -38,6 +40,7 @@ export async function prefix(message) {
     embeds: [
       panel({
         title: 'userinfo',
+        accent: await accent({ guildId: message.guildId, userId: user.id, member }),
         description: sections(
           section({ heading: 'account', rows }),
           section({

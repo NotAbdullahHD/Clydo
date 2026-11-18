@@ -137,6 +137,30 @@ const schema = `
     seconds INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (guild_id, user_id)
   ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS paint (
+    scope TEXT NOT NULL,
+    id TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (scope, id)
+  ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS jail (
+    guild_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    roles TEXT NOT NULL DEFAULT '[]',
+    at INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (guild_id, user_id)
+  ) WITHOUT ROWID;
+
+  CREATE TABLE IF NOT EXISTS fm (
+    user_id TEXT PRIMARY KEY,
+    template TEXT,
+    reactions TEXT NOT NULL DEFAULT '[]',
+    crown TEXT,
+    crown_plays INTEGER NOT NULL DEFAULT 0,
+    crown_at INTEGER NOT NULL DEFAULT 0
+  ) WITHOUT ROWID;
 `;
 
 let database = null;

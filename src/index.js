@@ -17,6 +17,11 @@ import { watch as watchPoj } from './lib/poj.js';
 import { watch as watchSticky } from './lib/sticky.js';
 import { watch as watchLevels } from './lib/levels.js';
 import { watch as watchVoice } from './lib/activity.js';
+import { watch as watchVoicemaster } from './lib/voicemaster.js';
+import { watch as watchVanity } from './lib/vanity.js';
+import { watch as watchResponders } from './lib/autoresponder.js';
+import { watch as watchJail } from './lib/jail.js';
+import { watch as watchAntinuke } from './lib/antinuke.js';
 import { watch as watchAfk } from './lib/afk.js';
 import { failInteraction, holdOnline, report } from './lib/errors.js';
 import { prefix, route as routePrefix } from './lib/prefix.js';
@@ -68,8 +73,25 @@ const bits = {
 };
 
 async function portalIntents() {
+  /**
+   * the portal read is the first thing boot does, so a dead network used to
+   * hang the process before it could log a single line. five seconds, then
+   * fall back to the env overrides like any other unreadable portal.
+   */
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
+
   try {
-    const application = await new REST().setToken(token).get('/applications/@me');
+    // raw fetch rather than REST: only this call needs an abort signal, and a
+    // hung portal must not hold boot open.
+    const response = await fetch('https://discord.com/api/v10/applications/@me', {
+      headers: { Authorization: `Bot ${token}` },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error(`portal answered ${response.status}`);
+
+    const application = await response.json();
     const flags = application?.flags ?? 0;
 
     return {
@@ -80,6 +102,8 @@ async function portalIntents() {
   } catch (error) {
     report('reading portal intents', error);
     return { presence: false, members: false, messageContent: false };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -126,6 +150,8 @@ const intents = [
   GatewayIntentBits.GuildMessageReactions,
   // voice state is not privileged — the voice log is free once it is asked for.
   GatewayIntentBits.GuildVoiceStates,
+  // antinuke reads the audit log; the intent is standard, not privileged.
+  GatewayIntentBits.GuildModeration,
 ];
 if (presenceIntent) intents.push(GatewayIntentBits.GuildPresences);
 if (membersIntent) intents.push(GatewayIntentBits.GuildMembers);
@@ -159,6 +185,11 @@ watchPoj(client);
 watchSticky(client);
 watchLevels(client);
 watchVoice(client);
+watchVoicemaster(client);
+watchVanity(client);
+watchResponders(client);
+watchJail(client);
+watchAntinuke(client);
 watchRoles(client);
 watchStarboard(client);
 watchAutomod(client);

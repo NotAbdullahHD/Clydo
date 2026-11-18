@@ -3,6 +3,7 @@ import { panel } from '../../lib/theme.js';
 /** `,banner [@user]` — profile banner at 1024. banners are never cached, so ask. */
 
 export const name = 'banner';
+export const names = ['bn'];
 
 export async function prefix(message) {
   const mentioned = message.mentions.users.first() ?? message.author;
