@@ -1,16 +1,17 @@
-import { ChannelType, PermissionFlagsBits } from 'discord.js';
-import { save, settings } from '../../lib/voicemaster.js';
+import { PermissionFlagsBits } from 'discord.js';
+import { dismantle, provision, settings } from '../../lib/voicemaster.js';
 import { no, ok } from '../../lib/line.js';
+import { panel, palette } from '../../lib/theme.js';
 
 /**
- * `,voicemaster [setup #hub|off|status]` — the join-to-create hub.
+ * `,voicemaster [setup|off]` — builds the vc category, text channel and hub.
  */
 
 export const name = 'voicemaster';
 export const names = ['vm'];
 
 export async function prefix(message, args) {
-  const head = (args[0] ?? 'status').toLowerCase();
+  const head = (args[0] ?? '').toLowerCase();
 
   if (!message.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
     await message.reply(no('this needs **manage channels**.'));
@@ -18,37 +19,44 @@ export async function prefix(message, args) {
   }
 
   if (head === 'setup' || head === 'on') {
-    const channel = message.mentions.channels.first()
-      ?? message.guild.channels.cache.get(args[1])
-      ?? null;
+    const state = settings(message.guildId);
 
-    if (!channel || channel.type !== ChannelType.GuildVoice) {
-      await message.reply(no('mention the voice channel people should join.'));
+    if (state.hubId && message.guild.channels.cache.has(state.hubId)) {
+      await message.reply(ok(message, `<#${state.hubId}> is already the hub.`));
       return;
     }
 
-    save(message.guildId, { hubId: channel.id, categoryId: channel.parentId ?? null });
+    const result = await provision(message.guild, args[1] || 'vc');
 
-    await message.reply(ok(message, `<#${channel.id}> is the hub — join it and a room appears.`));
+    if (result.problem) {
+      await message.reply(no(result.problem));
+      return;
+    }
+
+    await message.reply(ok(message, 'built **vc** — category, text channel and <#'.concat(result.hub.id, '>. join it to get a room.')));
     return;
   }
 
-  if (head === 'off') {
-    save(message.guildId, { hubId: null });
-    await message.reply(ok(message, 'join-to-create is off.'));
+  if (head === 'off' || head === 'reset') {
+    const gone = await dismantle(message.guild);
+
+    await message.reply(gone ? ok(message, `removed ${gone} channel${gone === 1 ? '' : 's'}.`) : no('there is nothing set up.'));
     return;
   }
 
   const state = settings(message.guildId);
 
   await message.reply({
-    embeds: [{
-      color: 0x2b2d31,
+    embeds: [panel({
       title: 'voicemaster',
+      accent: palette.panel,
       description: [
-        '`›` hub  •  ' + (state.hubId ? `<#${state.hubId}>` : 'not set'),
-        '`›` setup  •  `,voicemaster setup #hub`',
+        `\`›\` hub  •  ${state.hubId ? `<#${state.hubId}>` : 'not set'}`,
+        `\`›\` text  •  ${state.textId ? `<#${state.textId}>` : 'none'}`,
+        `\`›\` category  •  ${state.categoryId ? `<#${state.categoryId}>` : 'none'}`,
       ].join('\n'),
-    }],
+      footer: '`,voicemaster setup` builds everything  ·  `,voicemaster off` removes it',
+    })],
+    allowedMentions: { parse: [] },
   });
 }

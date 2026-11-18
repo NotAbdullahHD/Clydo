@@ -37,6 +37,20 @@ export const marks = Object.freeze({
   rule: '━━━━━━━━━━',
 });
 
+/**
+ * control glyphs.
+ *
+ * arrows, a bin and a crown are not emoji, they are the furniture of a card —
+ * but they are still glyphs, so they live here rather than in six commands.
+ */
+export const glyphs = Object.freeze({
+  prev: '◀',
+  next: '▶',
+  trash: '🗑',
+  crown: '👑',
+  medals: ['🥇', '🥈', '🥉'],
+});
+
 /** strict lower-case. */
 export const lower = (value) => String(value ?? '').toLowerCase();
 

@@ -1,4 +1,6 @@
+import { AttachmentBuilder } from 'discord.js';
 import { heading, payload, quiet, rule, shell, text } from '../../lib/card.js';
+import { collage } from '../../lib/collage.js';
 import { accent } from '../../lib/paint.js';
 import {
   artistPlays,
@@ -9,6 +11,7 @@ import {
   setStyle,
   setUser,
   style,
+  topAlbums,
   variables,
 } from '../../lib/lastfm.js';
 import { no, ok } from '../../lib/line.js';
@@ -28,6 +31,11 @@ const fill = (template, fields) => template.replace(
 
 export async function prefix(message, args) {
   const head = args[0]?.toLowerCase();
+
+  if (head === 'chart' || head === 'collage') {
+    await chart(message, args.slice(1));
+    return;
+  }
 
   if (head === 'set') {
     const username = args[1]?.trim();
@@ -141,4 +149,44 @@ export async function prefix(message, args) {
   }
 
   if (!sent) await message.reply(no('i could not post that card here.'));
+}
+
+/** `,fm chart [3|4|5] [week|month|all]` — the top albums as a grid. */
+async function chart(message, args) {
+  if (!configured()) {
+    await message.reply(no('last.fm is not set up — the owner needs `LASTFM_API_KEY`.'));
+    return;
+  }
+
+  const username = await getUser(message.author.id);
+
+  if (!username) {
+    await message.reply(no('you have no username yet — `,fm set <name>`'));
+    return;
+  }
+
+  const across = [3, 4, 5].includes(Number(args[0])) ? Number(args[0]) : 3;
+  const periods = { week: '7day', month: '1month', all: 'overall' };
+  const chosen = args.map((arg) => arg.toLowerCase()).find((arg) => arg in periods) ?? 'week';
+
+  await message.channel.sendTyping().catch(() => {});
+
+  const albums = await topAlbums(username, periods[chosen], across * across).catch(() => []);
+
+  if (!albums.length) {
+    await message.reply(no('nothing scrobbled in that window.'));
+    return;
+  }
+
+  const png = await collage({
+    albums,
+    size: across,
+    heading: `${username} · ${chosen} · ${albums.length} albums`,
+  });
+
+  await message.reply({
+    content: `-# ${username} — top albums, ${chosen}`,
+    files: [new AttachmentBuilder(png, { name: 'chart.png' })],
+    allowedMentions: { parse: [] },
+  });
 }

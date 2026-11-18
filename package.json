@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning src/index.js",
-    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.js"
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.js",
+    "verify": "node --disable-warning=ExperimentalWarning scripts/verify.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.1.0",

@@ -2,7 +2,7 @@ import { configured, crown, everyone, rememberCrown, topArtist } from '../../lib
 import { heading, listing, payload, quiet, rule, shell } from '../../lib/card.js';
 import { open as pager } from '../../lib/pager.js';
 import { no } from '../../lib/line.js';
-import { palette } from '../../lib/theme.js';
+import { glyphs, palette } from '../../lib/theme.js';
 
 /**
  * `,crowns [refresh]` — the artist each member listens to most, and who holds it.
@@ -59,7 +59,7 @@ export async function prefix(message, args) {
     heading(box, { title: 'crowns', note: 'most-played artist per member' });
     box.addSeparatorComponents(rule());
     box.addTextDisplayComponents(listing(rows.map((row) => (
-      `👑 <@${row.userId}>  —  **${row.artist}**  ·  ${row.plays.toLocaleString('en-US')} plays`
+      `${glyphs.crown} <@${row.userId}>  —  **${row.artist}**  ·  ${row.plays.toLocaleString('en-US')} plays`
     ))));
     box.addTextDisplayComponents(quiet('cached for twelve hours'));
 
@@ -71,7 +71,7 @@ export async function prefix(message, args) {
 
   for (let offset = 0; offset < rows.length; offset += pageSize) {
     pages.push(rows.slice(offset, offset + pageSize).map((row) => (
-      `👑 <@${row.userId}>  —  **${row.artist}**  ·  ${row.plays.toLocaleString('en-US')} plays`
+      `${glyphs.crown} <@${row.userId}>  —  **${row.artist}**  ·  ${row.plays.toLocaleString('en-US')} plays`
     )));
   }
 

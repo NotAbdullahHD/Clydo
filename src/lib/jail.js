@@ -61,6 +61,11 @@ export async function cage(member, reason = 'jailed') {
   const problem = blocker(member.guild, roleId);
   if (problem) return { error: problem };
 
+  /* never touch somebody the bot cannot manage — discord would throw. */
+  if (!member.manageable) {
+    return { error: 'their highest role is above mine — i cannot take their roles.' };
+  }
+
   const me = member.guild.members.me;
   const keep = [];
 
@@ -83,6 +88,10 @@ export async function cage(member, reason = 'jailed') {
 
 /** hand back what was taken, minus anything deleted in between. */
 export async function free(member, reason = 'released') {
+  if (!member.manageable) {
+    return { error: 'their highest role is above mine — i cannot give roles back.' };
+  }
+
   const state = held(member.guild.id, member.id);
   const { roleId } = settings(member.guild.id);
 
@@ -93,7 +102,7 @@ export async function free(member, reason = 'released') {
 
   forget(member.guild.id, member.id);
 
-  return back.length;
+  return { restored: back.length };
 }
 
 /** a jailed member who left and rejoined goes back in without being asked. */

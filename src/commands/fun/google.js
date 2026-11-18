@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { no } from '../../lib/line.js';
-import { panel, palette } from '../../lib/theme.js';
+import { glyphs, panel, palette } from '../../lib/theme.js';
 
 /**
  * `,google <query>` and `,image <query>` — ten results, one page at a time.
@@ -14,17 +14,17 @@ const endpoint = 'https://serpapi.com/search.json';
 const controls = (at, total, disabled = false) => new ActionRowBuilder().addComponents(
   new ButtonBuilder()
     .setCustomId('search:prev')
-    .setEmoji('◀')
+    .setEmoji(glyphs.prev)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled || at === 0),
   new ButtonBuilder()
     .setCustomId('search:next')
-    .setEmoji('▶')
+    .setEmoji(glyphs.next)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled || at >= total - 1),
   new ButtonBuilder()
     .setCustomId('search:close')
-    .setEmoji('🗑')
+    .setEmoji(glyphs.trash)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled),
 );

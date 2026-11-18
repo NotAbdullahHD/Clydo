@@ -186,7 +186,7 @@ watchSticky(client);
 watchLevels(client);
 watchVoice(client);
 watchVoicemaster(client);
-watchVanity(client);
+watchVanity(client, log);
 watchResponders(client);
 watchJail(client);
 watchAntinuke(client);
@@ -281,6 +281,9 @@ client.once(Events.ClientReady, async (ready) => {
   if (!messageIntent) {
     log(`prefix commands like ${prefix}sobs are inert until MESSAGE_INTENT=true.`);
   }
+
+  if (presenceIntent) log('vanity tracker: on.');
+  else log('vanity tracker: dormant — the presence intent is off.');
 
   log(`status: ${rotate(client, log)}.`);
 

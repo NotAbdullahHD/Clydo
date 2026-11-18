@@ -1,6 +1,7 @@
 import { PermissionFlagsBits } from 'discord.js';
 import { save, settings } from '../../lib/antinuke.js';
 import { no, ok } from '../../lib/line.js';
+import { palette } from '../../lib/theme.js';
 
 /**
  * `,antinuke on|off|threshold <n>|punish <strip|kick|ban>|log <#channel>|trust @user`
@@ -83,7 +84,7 @@ export async function prefix(message, args) {
 
   await message.reply({
     embeds: [{
-      color: 0x2b2d31,
+      color: palette.panel,
       title: 'antinuke',
       description: [
         `\`›\` state  •  ${config.on ? 'on' : 'off'}`,

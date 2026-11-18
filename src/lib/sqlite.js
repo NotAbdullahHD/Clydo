@@ -153,6 +153,14 @@ const schema = `
     PRIMARY KEY (guild_id, user_id)
   ) WITHOUT ROWID;
 
+  CREATE TABLE IF NOT EXISTS afk_pings (
+    user_id TEXT NOT NULL,
+    from_id TEXT NOT NULL,
+    channel_id TEXT,
+    at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, from_id, at)
+  ) WITHOUT ROWID;
+
   CREATE TABLE IF NOT EXISTS fm (
     user_id TEXT PRIMARY KEY,
     template TEXT,

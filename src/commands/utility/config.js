@@ -11,7 +11,7 @@ import { add, card, removeChannel, save, settings } from '../../lib/welcome.js';
  */
 
 export const name = 'config';
-export const names = ['welcome'];
+export const names = ['setup'];
 
 const group = 'welcome';
 

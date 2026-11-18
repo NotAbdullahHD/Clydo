@@ -96,6 +96,18 @@ export async function artistPlays(username, artist) {
   return { plays: Number.isFinite(plays) ? plays : 0, name: data?.artist?.name ?? artist };
 }
 
+/** the albums somebody plays most, with cover art, for a chart. */
+export async function topAlbums(username, period = '7day', limit = 25) {
+  const data = await call('user.gettopalbums', { user: username, period, limit: String(limit) });
+
+  return (data?.topalbums?.album ?? []).map((album) => ({
+    name: album.name,
+    artist: album.artist?.name ?? '',
+    plays: Number(album.playcount ?? 0),
+    art: album.image?.at(-1)?.['#text'] || null,
+  }));
+}
+
 /** the artist somebody listens to most. */
 export async function topArtist(username) {
   const data = await call('user.gettopartists', { user: username, period: 'overall', limit: 1 });

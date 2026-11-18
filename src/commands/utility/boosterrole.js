@@ -1,5 +1,6 @@
 import { blocker, create, edit, owned, remove } from '../../lib/booster.js';
 import { no, ok } from '../../lib/line.js';
+import { palette } from '../../lib/theme.js';
 
 /**
  * `,boosterrole [create|color|name|icon|delete]` — one personal role per booster.
@@ -74,7 +75,7 @@ export async function prefix(message, args) {
 
   await message.reply({
     embeds: [{
-      color: 0x2b2d31,
+      color: palette.panel,
       title: 'booster role',
       description: [
         `\`›\` yours  •  ${id ? `<@&${id}>` : 'none yet'}`,

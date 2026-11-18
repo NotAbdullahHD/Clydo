@@ -29,6 +29,11 @@ export async function prefix(message, args) {
     return;
   }
 
+  if (!target.manageable) {
+    await message.reply(no('their highest role is above mine — i cannot change their roles.'));
+    return;
+  }
+
   if (role.managed) {
     await message.reply(no('that role belongs to an integration.'));
     return;

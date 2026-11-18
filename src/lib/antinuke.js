@@ -1,4 +1,4 @@
-import { AuditLogEvent, Events } from 'discord.js';
+import { AuditLogEvent, Events, PermissionFlagsBits } from 'discord.js';
 import { cached, set } from './config.js';
 import { emoji } from './emoji.js';
 
@@ -55,6 +55,13 @@ export function watch(client) {
     recent.push(now);
     hits.set(stamp, recent);
 
+    /* one map for every guild, forever, would be a leak: drop what aged out. */
+    if (hits.size > 500) {
+      for (const [id, times] of hits) {
+        if (!times.some((time) => now - time < config.window)) hits.delete(id);
+      }
+    }
+
     if (recent.length < config.threshold) return;
 
     hits.delete(stamp);
@@ -64,7 +71,9 @@ export function watch(client) {
 
     let done = 'nothing';
 
-    if (config.punish === 'ban') {
+    if (config.punish === 'ban' && !guild.members.me.permissions.has(PermissionFlagsBits.BanMembers)) {
+      done = 'could not ban — i have no permission to ban';
+    } else if (config.punish === 'ban') {
       const banned = await member.ban({ reason: `antinuke — ${recent.length}× ${action}` })
         .then(() => true)
         .catch(() => false);

@@ -1,5 +1,6 @@
 import { open as pager } from '../../lib/pager.js';
 import { short, top } from '../../lib/economy.js';
+import { glyphs } from '../../lib/theme.js';
 
 /** `,lb` — the richest, ten a page. */
 
@@ -8,7 +9,7 @@ export const names = ['lb', 'rich', 'top'];
 
 const pageSize = 10;
 const depth = 500;
-const medals = ['🥇', '🥈', '🥉'];
+const medals = glyphs.medals;
 
 export async function prefix(message) {
   const ranked = await top(depth);

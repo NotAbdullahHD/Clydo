@@ -1,7 +1,7 @@
 import { artistPlays, configured, everyone } from '../../lib/lastfm.js';
 import { heading, listing, payload, quiet, rule, shell } from '../../lib/card.js';
 import { no } from '../../lib/line.js';
-import { palette } from '../../lib/theme.js';
+import { glyphs, palette } from '../../lib/theme.js';
 
 /**
  * `,whoknows <artist>` — the server's listeners of one artist, most plays first.
@@ -51,12 +51,11 @@ export async function prefix(message, args) {
     return;
   }
 
-  const medal = ['🥇', '🥈', '🥉'];
   const box = shell(palette.accent);
   heading(box, { title: 'whoknows', note: `${artist} · ${ranked.length} listener${ranked.length === 1 ? '' : 's'}` });
   box.addSeparatorComponents(rule());
   box.addTextDisplayComponents(listing(ranked.map((row, index) => (
-    `${medal[index] ?? '`›`'} <@${row.userId}>  —  **${row.plays.toLocaleString('en-US')}** plays`
+    `${glyphs.medals[index] ?? '`›`'} <@${row.userId}>  —  **${row.plays.toLocaleString('en-US')}** plays`
   ))));
   box.addTextDisplayComponents(quiet('plays come from each linked last.fm account'));
 

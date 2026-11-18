@@ -27,7 +27,12 @@ export async function prefix(message, args) {
     return;
   }
 
-  const restored = await free(target);
+  const result = await free(target);
 
-  await message.reply(ok(message, `released **${target.user.username}** — ${restored} role${restored === 1 ? '' : 's'} back.`));
+  if (result.error) {
+    await message.reply(no(result.error));
+    return;
+  }
+
+  await message.reply(ok(message, `released **${target.user.username}** — ${result.restored} role${result.restored === 1 ? '' : 's'} back.`));
 }

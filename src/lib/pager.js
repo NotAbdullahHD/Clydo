@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { heading, listing, payload, quiet, rule, shell } from './card.js';
+import { glyphs } from './theme.js';
 
 /**
  * lists page.
@@ -14,17 +15,17 @@ const window = 120_000;
 const controls = (at, size, disabled = false) => new ActionRowBuilder().addComponents(
   new ButtonBuilder()
     .setCustomId('page:prev')
-    .setEmoji('◀')
+    .setEmoji(glyphs.prev)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled || at === 0),
   new ButtonBuilder()
     .setCustomId('page:next')
-    .setEmoji('▶')
+    .setEmoji(glyphs.next)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled || at >= size - 1),
   new ButtonBuilder()
     .setCustomId('page:close')
-    .setEmoji('🗑')
+    .setEmoji(glyphs.trash)
     .setStyle(ButtonStyle.Secondary)
     .setDisabled(disabled),
 );

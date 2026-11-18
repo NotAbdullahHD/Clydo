@@ -76,6 +76,13 @@ export function watch(client) {
 
     const id = message.channelId;
     if ((last.get(id) ?? 0) > Date.now() - cooldown) return;
+
+    if (last.size > 1_000) {
+      for (const [channel, at] of last) {
+        if (at < Date.now() - cooldown * 10) last.delete(channel);
+      }
+    }
+
     last.set(id, Date.now());
 
     for (const row of matched) {
